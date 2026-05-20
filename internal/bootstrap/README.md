@@ -10,9 +10,9 @@ This package handles:
 2. **Infrastructure**: PostgreSQL (primary/replica), Redis, RabbitMQ connections.
 3. **Observability**: OpenTelemetry initialization plus request-scoped tracking helpers.
 4. **Server Setup**: Fiber server with standardized middleware and error handling.
-5. **Routing & Auth**: `/health`, `/readyz`, and protected `/api` routes.
+5. **Routing & Auth**: `/health`, `/readyz`, and protected `/v1/...` routes.
 6. **Lifecycle**: service startup/shutdown via `lib-commons` launcher.
-7. **Systemplane**: Runtime configuration authority with hot-reloadable settings, change history, and schema.
+7. **Systemplane**: Runtime configuration authority with hot-reloadable settings and inline schema metadata.
 8. **Dynamic Infrastructure**: Runtime switching of database connections, Redis, object storage, and partition management.
 9. **Worker Management**: Lifecycle management for background workers (outbox dispatcher, archival, scheduling, export, cleanup, discovery).
 10. **Rate Limiting**: Static and dynamic rate limiting with configurable policies.
@@ -55,7 +55,7 @@ Readiness uses `HealthDependencies`. Redis is optional by default; dependencies 
 4. Connect infrastructure and build health dependencies.
 5. Create the Fiber app and register routes.
 6. Initialize configuration module.
-7. Create shared outbox repository (owned by the Outbox context).
+7. Create the shared outbox repository from `lib-commons/v5/commons/outbox/postgres` and expose it through `sharedPorts.OutboxRepository`.
 8. Initialize ingestion module (requires outbox repo + ingestion publisher).
 9. Initialize matching module (requires outbox repo + matching publisher).
 10. Initialize reporting/governance/exception modules.
@@ -72,7 +72,7 @@ If you add a module with cross-context dependencies, update this list to keep th
 
 ### Observability Helpers
 
-`TrackingContext` wraps `lib-commons` tracking components (logger, tracer, header ID). `InitTelemetry` configures OpenTelemetry exporters with `lib-commons`.
+`TrackingContext` wraps `lib-observability` tracking components (logger, tracer, header ID). `InitTelemetry` configures OpenTelemetry exporters with `lib-observability`.
 
 ### Database Metrics (`db_metrics.go`)
 
@@ -84,7 +84,7 @@ Exports PostgreSQL connection pool metrics (open connections, in-use, idle, wait
 
 ### Systemplane Integration
 
-The systemplane (`lib-commons/v5/commons/systemplane`) is integrated during bootstrap to provide runtime configuration authority. The admin HTTP surface is mounted separately via `MountSystemplaneAPI` at `/system/:namespace/:key`:
+The systemplane (`github.com/LerianStudio/lib-systemplane`) is integrated during bootstrap to provide runtime configuration authority. The admin HTTP surface is mounted separately via `MountSystemplaneAPI` at `/system/:namespace` and `/system/:namespace/:key`:
 
 - **Config Manager**: Wraps the systemplane service to provide `configManager.Get()` for runtime config reads.
 - **Key Registry**: All configurable keys are registered with types, defaults, scopes, and mutability metadata.
@@ -96,11 +96,10 @@ Key categories registered: application/server, archival, messaging, PostgreSQL, 
 ### Dynamic Infrastructure
 
 Runtime-switchable infrastructure adapters:
-- `dynamic_infrastructure_provider.go`: Database connection switching.
-- `dynamic_redis_storage.go`: Redis connection management.
-- `dynamic_object_storage.go`: Object storage (S3/SeaweedFS) switching.
+- `dynamic_infrastructure_provider.go`: Tenant-aware PostgreSQL and Redis access, plus RabbitMQ tenant-manager resource ownership.
+- `dynamic_infrastructure_multi_tenant.go`: Multi-tenant context binding helpers.
+- `dynamic_lock_manager.go`: Runtime Redis lock provider management.
 - `dynamic_partition_manager.go`: Partition management.
-- `dynamic_discovery_runtime.go`: Discovery context runtime.
 - `dynamic_fetcher_client.go`: Fetcher client configuration.
 
 ### Worker Manager
@@ -111,7 +110,11 @@ Runtime-switchable infrastructure adapters:
 - Scheduler worker (configuration)
 - Export worker (reporting)
 - Cleanup worker (reporting)
-- Discovery worker and extraction poller
+- Discovery worker
+- Fetcher bridge worker
+- Custody retention worker
+
+The extraction poller is wired into the discovery command use case as a runner, not registered as a WorkerManager slot.
 
 Workers can be started, stopped, and reconfigured at runtime through systemplane.
 
@@ -120,13 +123,13 @@ Workers can be started, stopped, and reconfigured at runtime through systemplane
 ### Application Entry Point
 
 ```go
-func main() {
-    service, err := bootstrap.InitServers()
+func run(logger libLog.Logger) error {
+    service, err := bootstrap.InitServersWithOptions(&bootstrap.Options{Logger: logger})
     if err != nil {
-        log.Fatalf("Failed to initialize: %v", err)
+        return fmt.Errorf("initialize matcher service: %w", err)
     }
 
-    service.Run()
+    return service.Run()
 }
 ```
 

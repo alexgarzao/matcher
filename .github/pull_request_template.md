@@ -19,7 +19,7 @@
 
 - [ ] I have tested these changes locally
 - [ ] I have updated the documentation accordingly
-- [ ] I have added necessary comments to the code, especially in complex areas
+- [ ] I have avoided unnecessary inline comments; any comments explain non-obvious constraints or requested context
 - [ ] I have ensured that my changes adhere to the project's coding standards
 - [ ] I have checked for any potential security issues
 - [ ] I have ensured that all tests pass

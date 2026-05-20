@@ -41,18 +41,22 @@ Architectural constraints and design decisions for the Matcher codebase. This pr
 
 ## 2. Required Libraries
 
-- **AuthN/AuthZ**: `github.com/LerianStudio/lib-auth/v3` only (`v3.0.0-20260415175119-1568b252d48a`, pre-release pseudo-version pending upstream tag).
-- **Commons/Telemetry**: `github.com/LerianStudio/lib-commons/v5` (latest v5.x; currently v5.1.0).
-- **Assertions**: `github.com/LerianStudio/lib-commons/v5/commons/assert` (no panics; referred to as `pkg/assert` in shorthand).
+- **AuthN/AuthZ**: `github.com/LerianStudio/lib-auth/v2` (`v2.8.0`).
+- **Commons**: `github.com/LerianStudio/lib-commons/v5` (latest v5.x; currently v5.2.1) for non-observability infrastructure utilities.
+- **Observability**: `github.com/LerianStudio/lib-observability` (`v1.0.0`) for logging, tracing helpers, metrics factory, assertions, and panic recovery.
+- **Assertions**: `github.com/LerianStudio/lib-observability/assert` (no panics; referred to as `pkg/assert` in shorthand).
+- **Streaming**: `github.com/LerianStudio/lib-streaming` (`v1.5.0`) for producer-only CloudEvents, event catalog, manifest, and streaming outbox relay support.
 - **lib-commons submodules**:
-  - Tracking/logging: `commons/log` (`libLog`), `commons/commons` (`libCommons.NewTrackingFromContext`).
-  - OpenTelemetry: `commons/opentelemetry` (`libOpentelemetry`).
   - Database: `commons/postgres` (`libPostgres`).
   - Redis: `commons/redis` (`libRedis`).
   - Messaging: `commons/rabbitmq` (`libRabbitmq`).
-  - Panic recovery: `commons/runtime` (`runtime.RecoverAndLogWithContext`, `runtime.SafeGoWithContextAndComponent`).
-  - Runtime config: `commons/systemplane` (sole runtime configuration authority after bootstrap).
   - HTTP utilities: `commons/http` (`libHTTP` — ParseBodyAndValidate, Respond, CursorPagination, idempotency).
+- **lib-observability submodules**:
+  - Tracking/logging: root package (`libCommons.NewTrackingFromContext`) and `log` (`libLog`).
+  - OpenTelemetry helpers: `tracing` (`libOpentelemetry`).
+  - Metrics: `metrics` (`libMetrics`).
+  - Panic recovery: `runtime` (`runtime.RecoverAndLogWithContext`, `runtime.SafeGoWithContextAndComponent`).
+- **Runtime config**: `github.com/LerianStudio/lib-systemplane` (`v1.1.0`) as the sole runtime configuration authority after bootstrap.
 - **Key third-party**: `gofiber/fiber/v2` (HTTP), `Masterminds/squirrel` (SQL builder), `shopspring/decimal` (amounts), `google/uuid` (IDs), `go-playground/validator/v10` (DTO validation), `codeberg.org/go-pdf/fpdf` (PDF generation).
 - Do not introduce custom DB/Redis/MQ clients outside lib-commons wrappers.
 
@@ -73,7 +77,7 @@ Architectural constraints and design decisions for the Matcher codebase. This pr
 
 When calling `libOpentelemetry.SetSpanAttributesFromValue(span, name, value, redactor)`
 to attach a struct payload to a span, the 4th argument is a `*Redactor` from
-`lib-commons/v5/commons/opentelemetry`. Matcher today passes `nil` at all 35+
+`github.com/LerianStudio/lib-observability/tracing`. Matcher today passes `nil` at all 35+
 call sites because the payloads used are synthetic query descriptors composed
 of already-scoped field names (context_id, limit, cursor) — they contain no
 PII, credentials, or tenant-bearing secrets.
@@ -98,9 +102,9 @@ Matcher's `/readyz` handler caches its rendered response for 250ms to dampen Kub
 
 Invariants:
 
-- **Cache TTL = 250ms.** See `readyzCacheTTL` in `internal/bootstrap/health_check.go` line 331.
-- **Wall-clock cap = 900ms** (under kubelet's default 1s probe budget). See `readyzHandlerWallClockCap` in `internal/bootstrap/health_check.go` line 326.
-- **Drain short-circuit bypasses the cache.** When `drainingGetter()` returns `true` (SIGTERM received, in-flight requests draining), the handler skips the cache entirely and returns 503 immediately. See `internal/bootstrap/health_check.go` lines 270-279.
+- **Cache TTL = 250ms.** See `readyzCacheTTL` in `internal/bootstrap/health_check.go` line 342.
+- **Wall-clock cap = 900ms** (under kubelet's default 1s probe budget). See `readyzHandlerWallClockCap` in `internal/bootstrap/health_check.go` line 337.
+- **Drain short-circuit bypasses the cache.** When `drainingGetter()` returns `true` (SIGTERM received, in-flight requests draining), the handler skips the cache entirely and returns 503 immediately. See `internal/bootstrap/health_check.go` lines 281-289.
 - **Per-handler cache instance** — mounting a new handler (e.g. in tests) always starts with an empty cache.
 
 This deviates from Ring's default "always recompute health" guidance, but is justified under probe-amplification-in-K8s conditions. **Do not extend the cache beyond 250ms without load-testing justification**, and do not remove the drain short-circuit — a pod that is draining must report unhealthy on the very next probe, not up to 250ms later.
@@ -124,7 +128,7 @@ This deviates from Ring's default "always recompute health" guidance, but is jus
 - Required dependencies validated in constructor with sentinel errors; optional deps via functional options (`UseCaseOption`).
 - Method naming: domain-specific (e.g., `RunMatch()`, `ManualMatch()`, `CreateContext()`), NOT generic `Execute()`.
 - Input structures: single struct per method (e.g., `RunMatchInput`, `AdjustEntryInput`).
-- Every method starts with: `track := libCommons.NewTrackingFromContext(ctx)` + `ctx, span := track.Tracer.Start(ctx, "{context}.{operation}")` + `defer span.End()`.
+- Every method starts with: `logger, tracer, _, _ := libCommons.NewTrackingFromContext(ctx)` + `ctx, span := tracer.Start(ctx, "{context}.{operation}")` + `defer span.End()`.
 - Put logic in entities when it only needs entity fields; use services for multi-aggregate or external dependency coordination.
 - Keep services small and single-responsibility.
 - Prefer explicit state (enums) over implicit derivation for critical domain status.
@@ -167,7 +171,7 @@ This deviates from Ring's default "always recompute health" guidance, but is jus
 
 ## 9. Worker Patterns
 
-- Workers live in `services/worker/` (scheduler, archival, export, cleanup, discovery poller/worker).
+- Workers live in `services/worker/` (scheduler, archival, export, cleanup, discovery worker, Fetcher bridge worker, custody retention worker, and extraction poller runner).
 - Ticker-based polling with configurable interval.
 - Redis distributed lock (`SetNX` with TTL = 2x interval) prevents concurrent runs across instances.
 - Graceful shutdown: `atomic.Bool` for running state, `sync.Once` for stop, channels for signal-based shutdown.
@@ -211,7 +215,7 @@ This deviates from Ring's default "always recompute health" guidance, but is jus
 - Prefer read replicas for query services via `GetReplicaDB`.
 - Migration validation: `make check-migrations` verifies pairs (up/down) and sequential numbering via `scripts/check-migrations.sh`.
 - Migration naming: `000001_descriptive_name.up.sql` / `000001_descriptive_name.down.sql`.
-- Currently 21 migrations (000001 through 000021).
+- Currently 32 migrations (000001 through 000032).
 
 ## 14. Testing
 
@@ -326,12 +330,12 @@ Split into `handlers_{feature}.go` when a context has 3+ distinct feature areas 
 |----------|---------|
 | Core | `dev`, `build`, `tidy`, `clean` |
 | Quality | `lint`, `lint-fix`, `lint-custom`, `lint-custom-strict`, `format`, `sec`, `vet`, `vulncheck` |
-| Testing | `test`, `test-unit`, `test-int`, `test-e2e`, `test-e2e-fast`, `test-e2e-journeys`, `test-e2e-discovery`, `test-e2e-dashboard`, `test-chaos`, `test-all` |
+| Testing | `test`, `test-unit`, `test-int`, `test-e2e`, `test-e2e-fast`, `test-e2e-journeys`, `test-e2e-discovery`, `test-e2e-dashboard`, `test-chaos`, `test-leak`, `test-all` |
 | Coverage | `cover`, `coverage-unit`, `check-coverage` |
-| Checks | `check-tests`, `check-test-tags`, `check-migrations`, `check-generated-artifacts` |
-| Generation | `generate`, `generate-docs` |
+| Checks | `check-tests`, `check-tests-self`, `check-test-tags`, `check-migrations`, `check-license`, `check-generated-artifacts` |
+| Generation | `generate`, `generate-casdoor`, `generate-docs` |
 | Docker | `docker-build`, `up`, `down`, `start`, `stop`, `restart`, `rebuild-up`, `clean-docker`, `logs` |
-| Migration | `migrate-up`, `migrate-down`, `migrate-to`, `migrate-create` |
+| Migration | `migrate-up`, `migrate-down`, `migrate-to`, `migrate-create`, `migrate-version`, `migrate-force` |
 | CI | `ci` |
 
 - Test runner: `gotestsum` if available, else `go test`.
@@ -343,13 +347,13 @@ Matcher does **not** ship a `.env.example` file, and `docker-compose.yml` does *
 
 Rationale:
 
-1. **Bootstrap provides sensible defaults for every key** (`internal/bootstrap/config_defaults.go`), so a bare `docker compose up` works without any prior env setup.
+1. **Bootstrap provides sensible defaults for most keys** (`internal/bootstrap/config_defaults.go`). Docker Compose still requires `SYSTEMPLANE_SECRET_MASTER_KEY` to be supplied through the shell, deployment pipeline, or local `config/.env` before startup.
 2. **A single reference file is simpler than keeping `.env.example` + `env_file:` + bootstrap defaults in sync.** Three parallel lists of env vars drift apart; one canonical reference does not.
 3. **Operators who need overrides set env vars directly** — via their deployment pipeline, Helm values, or local shell. They do not need a template file; they read `config/.config-map.example` as documentation.
 
 **Do not create `.env.example`.** When adding a new bootstrap-only configuration key, update `config/.config-map.example` instead.
 
-This deviates from Ring's default `.env.example` + `env_file:` pattern, but is justified by the zero-config-defaults stance. See also `docker-compose.yml` (no `env_file:` directive) and `internal/bootstrap/config_defaults.go` (the single source of defaults).
+This deviates from Ring's default `.env.example` + `env_file:` pattern, but is justified by the zero-config-defaults stance. See also `docker-compose.yml` (no `env_file:` directive, but a fail-fast required `SYSTEMPLANE_SECRET_MASTER_KEY`) and `internal/bootstrap/config_defaults.go` (the single source of defaults).
 
 ## 17. Linting
 
@@ -383,9 +387,8 @@ Run with `make lint`. Configuration in `.golangci.yml`. 75+ linters enabled.
 
 | Rule | Enforces |
 |------|----------|
-| `http-handlers-boundary` | HTTP handlers cannot import postgres adapters (all 8 contexts) |
-| `cross-context-{name}` (x8) | Full cross-context isolation for all bounded contexts |
-| `cross-context-outbox` | Outbox cannot import any business context |
+| `http-handlers-boundary` | HTTP handlers cannot import postgres adapters for bounded contexts with HTTP adapters |
+| `cross-context-{name}` (x7) | Full cross-context isolation for all bounded contexts |
 | `service-no-adapters` | Services cannot import adapter packages; depend on ports |
 | `dto-no-services` | DTOs cannot import service packages |
 | `worker-no-adapters` | Workers cannot import postgres/redis/rabbitmq adapters directly |
@@ -408,6 +411,8 @@ Run with `make lint-custom`. Source in `tools/linters/`.
 | `entityconstructor` | `New<EntityName>(ctx, ...) (*EntityName, error)` pattern |
 | `observability` | `NewTrackingFromContext` + span creation + `defer span.End()` |
 | `repositorytx` | Write methods (`Create`, `Update`, `Delete`) have `*WithTx` variants |
+| `determinism` | Advisory check for non-deterministic time/UUID usage in entity-construction tests |
+| `goroutineleak` | Strict-mode check for packages that spawn goroutines without goleak-backed `TestMain` coverage |
 
 ### IDE Integration
 
@@ -425,12 +430,12 @@ All CI uses shared workflows from `LerianStudio/github-actions-shared-workflows`
 | `build.yml` | Tag push | Docker build (DockerHub + GHCR) + GitOps value updates |
 | `release.yml` | Push to develop/release-candidate/main | Automated semantic releases |
 
-- Go version: module `go 1.26.2` (in `go.mod`); CI and Dockerfile pinned to `1.26.2`. golangci-lint v2.10.1.
+- Go version: module `go 1.26.3` (in `go.mod`); CI and Dockerfile pinned to `1.26.3`. golangci-lint v2.10.1.
 - Coverage threshold: 70%, enforced via `fail_on_coverage_threshold: true`.
 
 ## 19. Docker
 
-- **Dockerfile**: Multi-stage build. `golang:1.26.2-alpine` (builder) -> `gcr.io/distroless/static-debian12:nonroot` (runtime).
+- **Dockerfile**: Multi-stage build. `golang:1.26.3-alpine` (builder) -> `gcr.io/distroless/static-debian12:nonroot` (runtime).
 - Separate `/health-probe` binary for distroless healthchecks (30s interval, 5s timeout, 3 retries).
 - Migrations copied to both `/migrations` and `/components/matcher/migrations` for lib-commons PostgresConnection.
 - **docker-compose services**:
@@ -442,7 +447,7 @@ All CI uses shared workflows from `LerianStudio/github-actions-shared-workflows`
 | redis | `valkey/valkey:8` | 6379 |
 | rabbitmq | `rabbitmq:4.1.3-management-alpine` | 5672, 15672 |
 | seaweedfs | `chrislusf/seaweedfs:3.80` | 8333, 9333 |
-| app | `golang:1.26.2-alpine` (air dev) | 4018 |
+| app | `golang:1.26.3-alpine` (air dev) | 4018 |
 
 - All infrastructure services have healthchecks. App container depends on all infra services being healthy.
 
@@ -473,7 +478,7 @@ All CI uses shared workflows from `LerianStudio/github-actions-shared-workflows`
 
 - Bootstrap-only keys (require restart): See `config/.config-map.example`.
 - Runtime keys: hot-reloadable via API, no restart needed.
-- API endpoints (canonical lib-commons v5 admin surface, management-plane only; intentionally excluded from public OpenAPI): `GET /system/matcher` (list with inline schema metadata), `GET /system/matcher/:key` (read a single key), `PUT /system/matcher/:key` (write a single key). The previous v4 `/v1/system/configs[...]` paths and the `/schema`, `/history`, `/reload` sub-endpoints were removed in the v5 migration. Reference: `lib-commons/v5/commons/systemplane/admin`.
+- API endpoints (canonical lib-systemplane admin surface, management-plane only; intentionally excluded from public OpenAPI): `GET /system/matcher` (list with inline schema metadata), `GET /system/matcher/:key` (read a single key), `PUT /system/matcher/:key` (write a single key). The previous `/v1/system/configs[...]` paths and the `/schema`, `/history`, `/reload` sub-endpoints are not part of the current lib-systemplane admin surface. Reference: `github.com/LerianStudio/lib-systemplane/admin`.
 - Key definitions in `internal/bootstrap/systemplane_keys_*.go`.
 - Reconcilers in `internal/bootstrap/systemplane_reconciler_*.go` apply changes to running components.
 - Never read Viper directly at runtime — use `configManager.Get()` which returns systemplane-backed config.

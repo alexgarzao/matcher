@@ -21,7 +21,10 @@ make test-int           # Integration tests (requires Docker)
 make test-e2e           # End-to-end tests (requires full stack)
 make test-e2e-fast      # Fast E2E tests (short mode, 5m timeout)
 make test-e2e-journeys  # Journey-based E2E tests only
-make test-chaos         # Chaos/fault-injection tests (requires Toxiproxy)
+make test-e2e-discovery # Discovery E2E tests with mock Fetcher
+make test-e2e-dashboard # 5k transaction dashboard stresser; preserves data
+make test-chaos         # Chaos/fault-injection tests (requires Docker; Toxiproxy runs via testcontainers)
+make test-leak          # Goroutine-leak tests with unit+leak build tags
 make test-all           # All tests with merged coverage
 ```
 

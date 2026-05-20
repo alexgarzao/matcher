@@ -1,6 +1,6 @@
-# Shared Context
+# Shared Kernel
 
-The `internal/shared` bounded context contains domain objects, value objects, and infrastructure adapters that are **shared across multiple bounded contexts**. It serves as a kernel for common definitions to avoid circular dependencies and duplication.
+The `internal/shared` package contains domain objects, value objects, ports, bridge adapters, and infrastructure helpers that are **shared across multiple bounded contexts**. It is the shared kernel, not a bounded context. Outbox repository and dispatcher behavior is delegated to `lib-commons/v5/commons/outbox` and wired in bootstrap.
 
 ## Overview
 
@@ -8,7 +8,7 @@ This context includes:
 1. **Common Domain Entities**: `Transaction`, `MatchRule`, and `FieldMap` are canonical data structures used by Ingestion, Matching, and Reporting.
 2. **Cross-Context Adapters**: Bridge adapters that connect bounded contexts without creating direct dependencies.
 3. **Fee Calculation Engine**: Full fee calculation subsystem with schedule calculation, verifier, normalization, and fee schedule/rule/structure models.
-4. **Infrastructure Adapters**: Tenant-aware infrastructure ports, common SQL utilities, outbox repository, RabbitMQ publisher, idempotency middleware, and M2M helpers.
+4. **Infrastructure Adapters**: Tenant-aware infrastructure ports, common SQL utilities, RabbitMQ publisher, idempotency middleware, custody storage, outbox telemetry helpers, and M2M helpers.
 5. **Constants and Utilities**: System-wide constants and text utilities.
 
 ## Architecture
@@ -17,10 +17,12 @@ This context includes:
 internal/shared/
 ├── adapters/
 │   ├── cross/           # Cross-context adapters (config, ingestion, matching, exception bridges)
+│   ├── custody/         # Artifact custody object-store adapter
 │   ├── http/            # Idempotency middleware and cursor pagination helpers
+│   ├── m2m/             # AWS Secrets Manager-backed M2M credential provider
+│   ├── outboxtelemetry/ # Outbox telemetry payload helpers
 │   ├── postgres/
 │   │   ├── common/      # Shared SQL utilities (cursor, nullable, tx, read helpers)
-│   │   └── outbox/      # Shared outbox repository implementation
 │   └── rabbitmq/        # Confirmable publisher, DLQ, constants
 ├── constants/           # System-wide constants (application name, pagination defaults)
 ├── domain/

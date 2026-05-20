@@ -107,6 +107,7 @@ The `Dispute` aggregate tracks the resolution process:
 | POST | `/v1/exceptions/:exceptionId/force-match` | Force-match an exception |
 | POST | `/v1/exceptions/:exceptionId/adjust-entry` | Adjust entry for an exception |
 | POST | `/v1/exceptions/:exceptionId/dispatch` | Dispatch to external system (rate-limited) |
+| POST | `/v1/exceptions/:exceptionId/callback` | Process callback from an external system |
 | POST | `/v1/exceptions/bulk/assign` | Bulk assign exceptions |
 | POST | `/v1/exceptions/bulk/resolve` | Bulk resolve exceptions |
 | POST | `/v1/exceptions/bulk/dispatch` | Bulk dispatch exceptions (rate-limited) |

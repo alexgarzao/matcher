@@ -50,7 +50,6 @@ Matcher is a **modular monolith** built with Domain-Driven Design (DDD), hexagon
 | **Exception** | Exception lifecycle, disputes with evidence tracking, bulk operations, external dispatch |
 | **Governance** | Immutable audit logs, cryptographic hash chain verification, S3 archival |
 | **Reporting** | Dashboard metrics, async export jobs (CSV/PDF), streaming reports, Redis caching |
-| **Outbox** | Reliable event publication via transactional outbox pattern |
 
 ### Technical Highlights
 
@@ -61,15 +60,15 @@ Matcher is a **modular monolith** built with Domain-Driven Design (DDD), hexagon
 - **Distributed Locking** — Redis-based locks preventing concurrent match runs
 - **Cross-Currency Matching** — FX rate lookups and base-currency normalization
 - **Idempotency** — Redis-backed idempotency keys for safe client retries
-- **Systemplane** — Runtime configuration authority with hot-reloadable settings, history, and schema API
+- **Systemplane** — Runtime configuration authority with hot-reloadable settings and inline schema metadata via the current admin API
 - **Chaos Testing** — Toxiproxy-based fault injection for resilience validation
-- **OpenTelemetry** — Distributed tracing and metrics via lib-commons
+- **OpenTelemetry** — Distributed tracing and metrics via lib-observability
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Go 1.26.0+](https://go.dev/dl/)
+- [Go 1.26.3](https://go.dev/dl/)
 - [Docker](https://docs.docker.com/get-docker/) and Docker Compose
 - [golang-migrate](https://github.com/golang-migrate/migrate) (for database migrations)
 
@@ -78,6 +77,7 @@ Matcher is a **modular monolith** built with Domain-Driven Design (DDD), hexagon
 ```bash
 git clone https://github.com/LerianStudio/matcher.git
 cd matcher
+export SYSTEMPLANE_SECRET_MASTER_KEY="$(openssl rand -base64 32 | tr -d '\n')"
 make up
 ```
 
@@ -100,7 +100,7 @@ The API is available at `http://localhost:4018`. Swagger UI is accessible at `ht
 
 ### Configuration
 
-No configuration files needed — all defaults are baked into the binary and match the docker-compose setup.
+No configuration file is required for most local defaults. Docker Compose still requires `SYSTEMPLANE_SECRET_MASTER_KEY`; export it in your shell or define it in local `config/.env` before running `make up`.
 
 For production, override via environment variables. See [`config/.config-map.example`](config/.config-map.example) for bootstrap-only keys (require restart). Runtime hot-reload is limited to systemplane-managed settings (for example: body limit, rate limits, worker intervals, feature flags, timeouts, export settings, and archival intervals) via `/system/matcher/:key` (`GET`/`PUT`) and `/system/matcher` (list with inline schema metadata). The admin API is a management-plane surface and is intentionally excluded from the public OpenAPI specification.
 
@@ -122,9 +122,11 @@ env:
 ```
 matcher/
 ├── cmd/                  # Application entry points
+│   ├── generate-casdoor/ # Casdoor RBAC seed generation
+│   ├── health-probe/     # Health check binary for distroless containers
 │   ├── matcher/          # Main service binary
-│   └── health-probe/     # Health check binary for distroless containers
-├── config/               # Environment templates and storage config
+│   └── migration-preflight/ # Migration safety preflight checks
+├── config/               # Configuration references and storage config
 ├── docs/                 # Design documents and API specs
 │   ├── swagger/          # Generated OpenAPI spec (JSON + YAML)
 │   ├── multi-tenant-guide.md
@@ -139,10 +141,10 @@ matcher/
 │   ├── exception/        # Exception and dispute management
 │   ├── governance/       # Audit logs and archival
 │   ├── reporting/        # Analytics and exports
-│   ├── outbox/           # Transactional outbox
 │   ├── shared/           # Shared kernel (cross-context types and ports)
+│   ├── streaming/        # lib-streaming catalog, producer bootstrap, and manifest support
 │   └── testutil/         # Shared test helpers
-├── migrations/           # PostgreSQL schema migrations (21 migrations)
+├── migrations/           # PostgreSQL schema migrations (32 migrations)
 ├── pkg/                  # Reusable library packages
 │   └── chanutil/         # Safe channel utilities
 ├── scripts/              # Dev and CI utility scripts
@@ -176,7 +178,7 @@ matcher/
 | Valkey (Redis) | `valkey/valkey:8` | 6379 |
 | RabbitMQ | `rabbitmq:4.1.3-management-alpine` | 5672 (AMQP), 15672 (UI) |
 | SeaweedFS (S3) | `chrislusf/seaweedfs:3.80` | 8333 (S3), 9333 (Master) |
-| Matcher App | `golang:1.26.2-alpine` | 4018 |
+| Matcher App | `golang:1.26.3-alpine` | 4018 |
 
 ### Testing
 

@@ -97,6 +97,10 @@ Background job that archives old audit log partitions to S3:
 | GET | `/v1/governance/entities/:entityType/:entityId/audit-logs` | List logs by entity |
 | GET | `/v1/governance/archives` | List archived audit log partitions |
 | GET | `/v1/governance/archives/:id/download` | Download archived audit log |
+| PUT | `/v1/governance/actor-mappings/:actorId` | Upsert actor mapping |
+| GET | `/v1/governance/actor-mappings/:actorId` | Get actor mapping |
+| POST | `/v1/governance/actor-mappings/:actorId/pseudonymize` | Pseudonymize actor mapping |
+| DELETE | `/v1/governance/actor-mappings/:actorId` | Delete actor mapping |
 
 ## Usage
 

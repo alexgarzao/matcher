@@ -3,7 +3,7 @@
 # Common settings that require a container/pod restart to take effect.
 # For the full list of bootstrap-only keys, see the systemplane key definitions
 # in internal/bootstrap/systemplane_keys_*.go (any key with ApplyBootstrapOnly).
-# Everything else is hot-reloadable at runtime via the canonical lib-commons v5
+# Everything else is hot-reloadable at runtime via the canonical lib-systemplane
 # systemplane admin API (management-plane surface, intentionally excluded from
 # the public OpenAPI spec):
 #
@@ -11,7 +11,7 @@
 #   GET  /system/matcher/:key        — read a single key
 #   PUT  /system/matcher/:key        — write a single key
 #
-# See github.com/LerianStudio/lib-commons/v5/commons/systemplane/admin for the
+# See github.com/LerianStudio/lib-systemplane/admin for the
 # full HTTP surface. The v4 /v1/system/configs[...] paths and the /schema,
 # /history, /reload sub-endpoints were removed in the v5 migration.
 #

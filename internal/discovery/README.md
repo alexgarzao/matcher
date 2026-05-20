@@ -26,17 +26,20 @@ internal/discovery/
 │   │   ├── connection/  # FetcherConnection repository
 │   │   ├── schema/      # DiscoveredSchema repository
 │   │   └── extraction/  # ExtractionRequest repository
+│   ├── m2m/             # Fetcher token exchange helpers
 │   ├── redis/           # Schema cache implementation
 │   └── fetcher/         # HTTP client for Fetcher service
 ├── domain/
 │   ├── entities/        # Core business entities
 │   ├── repositories/    # Repository interfaces
 │   └── value_objects/   # Enums and value types
+├── extractionpoller/    # Runtime poller wrapper/factory
 ├── ports/               # External dependency interfaces (SchemaCache, ExtractionJobPoller)
+├── schemacache/         # Schema cache wrapper
 └── services/
     ├── command/         # Write operations (refresh, test, extract, poll)
     ├── query/           # Read operations (status, connections, schemas, extractions)
-    ├── worker/          # Background discovery worker, extraction poller
+    ├── worker/          # Discovery worker, extraction poller runner, Fetcher bridge worker, custody retention worker, and streaming event helpers
     └── syncer/          # Connection/schema synchronization logic
 ```
 
@@ -125,6 +128,8 @@ Redis-backed cache (`adapters/redis/schema_cache.go`) for discovered schemas:
 | GET | `/v1/discovery/connections/:connectionId/schema` | Get discovered table schemas for a connection |
 | POST | `/v1/discovery/connections/:connectionId/test` | Test connectivity for a connection |
 | POST | `/v1/discovery/connections/:connectionId/extractions` | Start a data extraction job |
+| GET | `/v1/discovery/extractions/bridge/summary` | Get Fetcher bridge readiness summary |
+| GET | `/v1/discovery/extractions/bridge/candidates` | List bridge-ready extraction candidates |
 | GET | `/v1/discovery/extractions/:extractionId` | Get an extraction request by ID |
 | POST | `/v1/discovery/extractions/:extractionId/poll` | Poll Fetcher for extraction status update |
 | POST | `/v1/discovery/refresh` | Force an immediate discovery sync with Fetcher |

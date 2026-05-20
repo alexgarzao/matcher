@@ -15,10 +15,7 @@ become flaky whenever assertions touch the resulting value.
 
 ## Status
 
-Advisory. Runs under `make lint-custom-strict` only; the default
-`make lint-custom` target does not enable it. This mirrors the
-`goroutineleak` rollout: the linter graduates to strict mode once the
-existing violations in the codebase are cleaned up.
+Advisory. Runs under the default `make lint-custom` target with `MATCHER_DETERMINISM_LINTER=1` and does not fail the target. It is not part of `make lint-custom-strict` yet; it graduates to strict mode once existing violations are cleaned up.
 
 ## Scope + heuristics
 

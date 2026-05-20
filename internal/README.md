@@ -1,13 +1,11 @@
 # internal
 
-Core application code organized as bounded contexts following Domain-Driven Design (DDD) with Hexagonal Architecture.
+Core application code organized as bounded contexts plus supporting packages following Domain-Driven Design (DDD) with Hexagonal Architecture.
 
 ## Bounded Contexts
 
 | Context | Description |
 |---------|-------------|
-| [auth](auth/) | Authentication, authorization, and multi-tenancy middleware |
-| [bootstrap](bootstrap/) | Service initialization, dependency wiring, systemplane, and lifecycle management |
 | [configuration](configuration/) | Reconciliation contexts, sources, field maps, match rules, fee schedules/rules, scheduling |
 | [discovery](discovery/) | External data source discovery, schema detection, and extraction management |
 | [ingestion](ingestion/) | File parsing (CSV/JSON/XML), normalization, deduplication, and transaction import |
@@ -15,9 +13,18 @@ Core application code organized as bounded contexts following Domain-Driven Desi
 | [exception](exception/) | Exception lifecycle, disputes, evidence tracking, resolution workflows, bulk operations |
 | [governance](governance/) | Immutable audit logs, hash chain verification, actor mapping, archival |
 | [reporting](reporting/) | Dashboard analytics, export jobs (CSV/PDF), streaming reports, caching |
-| [outbox](outbox/) | Reliable event publication via the transactional outbox pattern |
-| [shared](shared/) | Cross-context domain objects, fee engine, infrastructure adapters |
+
+## Supporting Packages
+
+| Package | Description |
+|---------|-------------|
+| [auth](auth/) | Authentication, authorization, and multi-tenancy middleware |
+| [bootstrap](bootstrap/) | Service initialization, dependency wiring, systemplane, and lifecycle management |
+| [shared](shared/) | Shared kernel with cross-context domain objects, ports, bridge adapters, fee engine, and infrastructure helpers |
+| [streaming](streaming/) | lib-streaming catalog, producer bootstrap, outbox relay wiring, and manifest support |
 | [testutil](testutil/) | Shared test utilities and helpers |
+
+Outbox is a cross-cutting infrastructure concern wired through `internal/bootstrap/outbox_wiring.go` and `lib-commons/v5/commons/outbox`; it is not a bounded context.
 
 ## Architecture
 

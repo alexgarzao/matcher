@@ -41,7 +41,7 @@ Matcher is a Go service built as a modular monolith using DDD, hexagonal archite
 
 - [Bootstrap Config Reference](config/.config-map.example): All bootstrap-only environment variables
 - [Docker Compose](docker-compose.yml): Infrastructure services (Postgres, Redis, RabbitMQ, SeaweedFS)
-- [Dockerfile](Dockerfile): Multi-stage build (golang:1.26.1-alpine -> distroless)
+- [Dockerfile](Dockerfile): Multi-stage build (golang:1.26.3-alpine -> distroless)
 - [Air Config](.air.toml): Live reload configuration for development
 
 ## Development

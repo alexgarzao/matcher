@@ -5,6 +5,7 @@ Comprehensive reference for AI coding agents working in the Matcher codebase. Re
 ## Quick Start (30 seconds)
 
 ```bash
+export SYSTEMPLANE_SECRET_MASTER_KEY="$(openssl rand -base64 32 | tr -d '\n')"
 make up          # Start infrastructure (Postgres, Redis, RabbitMQ, SeaweedFS)
 make migrate-up  # Apply database migrations
 make dev         # Run with live reload (air) on :4018
@@ -19,7 +20,7 @@ Health check: `GET http://localhost:4018/health`
 | Attribute | Value |
 |-----------|-------|
 | **Project** | Transaction reconciliation engine for Lerian Studio |
-| **Language** | Go (module: `go 1.26.1`) |
+| **Language** | Go (module: `go 1.26.3`) |
 | **Architecture** | Modular monolith: DDD + Hexagonal + CQRS-light |
 | **Database** | PostgreSQL 17, schema-per-tenant isolation |
 | **Cache/Locking** | Valkey (Redis-compatible) 8 |
@@ -51,6 +52,7 @@ make test-e2e-journeys # Journey-based E2E only
 make test-e2e-discovery # Discovery E2E with mock Fetcher
 make test-e2e-dashboard # 5k transaction dashboard stresser
 make test-chaos       # Fault injection tests (Toxiproxy + containers)
+make test-leak        # Goroutine-leak tests with unit+leak build tags
 make test-all         # All tests (unit + integration + e2e) with merged coverage
 
 # Single test
@@ -62,8 +64,8 @@ go test -v -tags=unit -run TestFunctionName ./path/to/package/...
 ```bash
 make lint             # golangci-lint (75+ linters, .golangci.yml)
 make lint-fix         # golangci-lint with auto-fix
-make lint-custom      # Custom Matcher linters (entity, observability, tx patterns)
-make lint-custom-strict # Custom linters in strict mode (fails on violations)
+make lint-custom      # Custom Matcher linters plus determinism advisory
+make lint-custom-strict # Strict custom linters with goroutine-leak checks
 make format           # go fmt
 make sec              # gosec security scanner
 make vet              # go vet static analysis
@@ -75,8 +77,10 @@ make ci               # Full local CI pipeline (lint + test + sec + vet + checks
 
 ```bash
 make check-tests              # Every .go file has a _test.go
+make check-tests-self         # Self-test the check-tests script
 make check-test-tags          # Test files have proper build tags
 make check-migrations         # Migration pairs and sequential numbering
+make check-license            # Verify Elastic License 2.0 headers
 make check-coverage           # Coverage meets 70% threshold
 make check-generated-artifacts # Swagger docs are up to date
 ```
@@ -85,6 +89,7 @@ make check-generated-artifacts # Swagger docs are up to date
 
 ```bash
 make generate         # go:generate (mocks, etc.)
+make generate-casdoor # Generate Casdoor seed data
 make generate-docs    # Swagger/OpenAPI docs to docs/swagger/
 ```
 
@@ -95,6 +100,8 @@ make migrate-up                   # Apply all pending migrations
 make migrate-down                 # Rollback last migration
 make migrate-to VERSION=<n>       # Migrate to specific version
 make migrate-create NAME=<name>   # Create new migration pair
+make migrate-version              # Show current migration version
+make migrate-force VERSION=<n>    # Force version after manual dirty-state repair; does not run SQL
 ```
 
 ### Docker
@@ -125,6 +132,7 @@ internal/
 ├── governance/       # Immutable audit logs, hash chains, archival
 ├── reporting/        # Dashboard analytics, export jobs (CSV/PDF), variance reports
 ├── shared/           # Shared kernel: cross-context domain types + port abstractions
+├── streaming/        # lib-streaming catalog, producer bootstrap, relay, and manifest support
 └── testutil/         # Shared test helpers (Ptr[T], deterministic time)
 ```
 
@@ -169,7 +177,9 @@ internal/shared/
 ├── adapters/
 │   ├── cross/        # Bridge adapters connecting contexts
 │   ├── http/         # Shared HTTP middleware (idempotency, rate limiting, error mapping)
+│   ├── custody/      # Artifact custody object-store adapter
 │   ├── m2m/          # Machine-to-machine credential adapters
+│   ├── outboxtelemetry/ # Outbox telemetry payload helpers
 │   ├── postgres/     # Common SQL utilities (pgcommon)
 │   └── rabbitmq/     # Shared RabbitMQ publisher with confirms + DLQ
 ├── constants/        # Shared constants
@@ -237,9 +247,10 @@ func NewMatchItem(ctx context.Context, txID uuid.UUID, allocated, expected decim
 
 ```go
 func (uc *UseCase) RunMatch(ctx context.Context, input RunMatchInput) (*MatchRun, error) {
-    track := libCommons.NewTrackingFromContext(ctx)
-    ctx, span := track.Tracer.Start(ctx, "matching.run_match")
+    logger, tracer, _, _ := libCommons.NewTrackingFromContext(ctx)
+    ctx, span := tracer.Start(ctx, "matching.run_match")
     defer span.End()
+    _ = logger
     // orchestration logic...
 }
 ```
@@ -383,7 +394,7 @@ Split into `handlers_{feature}.go` when a context has 3+ distinct feature areas.
 
 7. **Outbox pattern** — All async communication via outbox (no direct context-to-context messaging). Dispatcher polls with configurable interval (~2s). `ConfirmablePublisher` with broker confirmation and automatic channel recovery.
 
-8. **Systemplane is runtime config authority** — Viper + env vars are bootstrap-only. After startup, `systemplane` owns all runtime config. Use `configManager.Get()` for values. v5 admin surface (management-plane, intentionally excluded from public OpenAPI): `GET /system/:namespace` (list with inline schema metadata), `GET /system/:namespace/:key` (read a single key), `PUT /system/:namespace/:key` (write a single key). The matcher namespace is `matcher`. The v4 `/v1/system/configs[...]` paths and the `/schema`, `/history`, `/reload` sub-endpoints are REMOVED — schema metadata is returned inline in list responses, history is available only via audit logs, and reload is no longer exposed (v5 auto-subscribes to changes).
+8. **Systemplane is runtime config authority** — Viper + env vars are bootstrap-only. After startup, `systemplane` owns all runtime config. Use `configManager.Get()` for values. Current lib-systemplane admin surface (management-plane, intentionally excluded from public OpenAPI): `GET /system/:namespace` (list with inline schema metadata), `GET /system/:namespace/:key` (read a single key), `PUT /system/:namespace/:key` (write a single key). The matcher namespace is `matcher`. The previous `/v1/system/configs[...]` paths and the `/schema`, `/history`, `/reload` sub-endpoints are not part of the current admin surface — schema metadata is returned inline in list responses, history is available only via audit logs, and the current change-feed path propagates changes automatically.
 
 9. **Docker Compose auto-detection** — Makefile auto-detects `docker compose` vs `docker-compose` via `$(DOCKER_CMD)`.
 
@@ -397,7 +408,7 @@ Split into `handlers_{feature}.go` when a context has 3+ distinct feature areas.
 
 ### Zero-Config Defaults
 
-Matcher uses zero-config defaults — all configuration has sensible defaults baked into `defaultConfig()` in `internal/bootstrap/config_defaults.go`. No `.env` or YAML files required. Override via environment variables for production.
+Matcher uses zero-config defaults — all configuration has sensible defaults baked into `defaultConfig()` in `internal/bootstrap/config_defaults.go`. No `.env` or YAML files are required for the binary. Docker Compose still requires `SYSTEMPLANE_SECRET_MASTER_KEY`, which you can export in the shell or place in local `config/.env`. Override via environment variables for production.
 
 ### Bootstrap vs Runtime
 
@@ -407,7 +418,7 @@ Matcher uses zero-config defaults — all configuration has sensible defaults ba
 | `POSTGRES_HOST`, `REDIS_HOST`, `RABBITMQ_HOST` | Feature flags, timeouts |
 | `OTEL_EXPORTER_OTLP_ENDPOINT`, `LOG_LEVEL` | Export settings, archival intervals |
 
-> Note: `LOG_LEVEL` is bootstrap-only. Runtime log-level swapping is **not** implemented — changing `LOG_LEVEL` requires a process restart. The previous `app.log_level` systemplane key was removed in the lib-commons v5 migration because editing it via the admin API had no effect.
+> Note: `LOG_LEVEL` is bootstrap-only. Runtime log-level swapping is **not** implemented — changing `LOG_LEVEL` requires a process restart. The previous `app.log_level` systemplane key was removed because editing it via the admin API had no effect.
 
 See [`config/.config-map.example`](config/.config-map.example) for all bootstrap-only keys.
 
@@ -428,18 +439,23 @@ See [`config/.config-map.example`](config/.config-map.example) for all bootstrap
 
 ### Lerian-Specific
 
-- **lib-auth/v3** (`v3.0.0-20260415175119-1568b252d48a`): JWT extraction, RBAC authorization, tenant schema application. This is a pre-release pseudo-version pending upstream tag — see the `lib-auth/v3 Pseudo-version Tracking` appendix below for action items.
+- **lib-auth/v2** (`v2.8.0`): JWT extraction, RBAC authorization, tenant schema application.
   - `auth.GetTenantID(ctx)`, `auth.GetTenantSlug(ctx)`, `auth.ApplyTenantSchema(ctx, tx)`
 
-- **lib-commons/v5** (`v5.0.2`): Common utilities, telemetry, infrastructure
-  - Tracking: `libCommons.NewTrackingFromContext(ctx)` → logger, tracer, headerID
-  - OpenTelemetry: `libOpentelemetry.HandleSpanError(span, "msg", err)`
+- **lib-commons/v5** (`v5.2.1`): Common infrastructure utilities
   - Database: `libPostgres.New()` / `libPostgres.NewPrimaryReplica()`
   - Redis: `libRedis.New()`
   - Messaging: `libRabbitmq.New()`
-  - Assertions: `commons/assert` (imported as `pkg/assert` by convention, but lives in lib-commons)
-  - Panic recovery: `commons/runtime` (imported as `pkg/runtime` by convention, but lives in lib-commons)
-  - Runtime config: `commons/systemplane`
+
+- **lib-observability** (`v1.0.0`): Logging, tracing helpers, metrics, assertions, and panic recovery
+  - Tracking: `libCommons.NewTrackingFromContext(ctx)` → logger, tracer, headerID
+  - OpenTelemetry helpers: `libOpentelemetry.HandleSpanError(span, "msg", err)`
+  - Assertions: `assert` (imported as `pkg/assert` by convention)
+  - Panic recovery: `runtime` (imported as `pkg/runtime` by convention)
+
+- **lib-streaming** (`v1.5.0`): Producer-only CloudEvents publication, event catalog, streaming outbox relay, and manifest support.
+
+- **lib-systemplane** (`v1.1.0`): Runtime configuration authority
 
 ### Key Third-Party
 
@@ -477,7 +493,7 @@ Key categories: Security (gosec, bidichk), Bugs (errcheck, govet, staticcheck), 
 
 | Rule | Enforces |
 |------|----------|
-| `cross-context-{name}` (x8) | Full cross-context isolation; direct imports blocked |
+| `cross-context-{name}` (x7) | Full cross-context isolation; direct imports blocked |
 | `http-handlers-boundary` | HTTP handlers cannot import postgres adapters |
 | `service-no-adapters` | Services depend on ports, not adapters |
 | `dto-no-services` | DTOs are pure data structures |
@@ -497,6 +513,8 @@ Run with `make lint-custom`:
 | `entityconstructor` | `New<EntityName>(ctx, ...) (*EntityName, error)` pattern |
 | `observability` | `NewTrackingFromContext` + span creation + `defer span.End()` |
 | `repositorytx` | Write methods (`Create`, `Update`, `Delete`) have `*WithTx` variants |
+| `determinism` | Advisory check for non-deterministic time/UUID usage in entity-construction tests |
+| `goroutineleak` | Strict-mode check for packages that spawn goroutines without goleak-backed `TestMain` coverage |
 
 ## CI/CD
 
@@ -587,23 +605,6 @@ All CI uses shared workflows from `LerianStudio/github-actions-shared-workflows`
 | [`internal/shared/`](internal/shared/) | Shared kernel (cross-context types) |
 | [`docs/swagger/swagger.json`](docs/swagger/swagger.json) | OpenAPI specification |
 
-## lib-auth/v3 Pseudo-version Tracking
-
-go.mod currently pins `github.com/LerianStudio/lib-auth/v3` at pseudo-version
-`v3.0.0-20260415175119-1568b252d48a`. A tagged v3.0.0 does not yet exist
-upstream. This is intentional during the lib-commons v5 + lib-auth v3
-migration window.
-
-**Action items before production deploy:**
-- [ ] Confirm LerianStudio/lib-auth has published v3.0.0 (or v3.0.0-rc.N)
-- [ ] Bump `go.mod` to the tagged version
-- [ ] Run `go mod tidy && make test`
-- [ ] Remove this tracking entry
-
-**Monitoring:** `git ls-remote --tags https://github.com/LerianStudio/lib-auth | grep v3`
-
----
-
-**Last Updated**: April 2026
-**Go Version**: module `go 1.26.1`
+**Last Updated**: May 2026
+**Go Version**: module `go 1.26.3`
 **Migrations**: 32 (000001 through 000032)

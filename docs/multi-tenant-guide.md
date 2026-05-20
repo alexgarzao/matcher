@@ -7,9 +7,9 @@
 | **Service** | matcher (transaction reconciliation engine) |
 | **Service type** | Product (not plugin) |
 | **Stack** | PostgreSQL, Redis, RabbitMQ, S3/Object Storage |
-| **Multi-tenant model** | `tenantId` from JWT &rarr; TenantMiddleware &rarr; database-per-tenant via `tmpostgres.Manager` |
+| **Multi-tenant model** | `tenantId` from JWT &rarr; TenantMiddleware &rarr; tenant-aware infrastructure resolver &rarr; PostgreSQL schema isolation via `SET LOCAL search_path` |
 
-In single-tenant mode (default), matcher uses a singleton database connection and the `public` schema. When multi-tenant mode is enabled, each tenant gets an isolated database provisioned and managed by the Tenant Manager service.
+In single-tenant mode (default), matcher uses a singleton database connection and the `public` schema. When multi-tenant mode is enabled, the Tenant Manager resolves tenant-specific infrastructure and repositories still apply tenant schema isolation inside transactions. The default tenant uses the `public` schema.
 
 ## 2. Components
 
@@ -48,13 +48,13 @@ Additionally, the following default-tenant variables remain relevant in both mod
 
 ### M2M Configuration (Fetcher)
 
-When the matcher calls Fetcher in multi-tenant mode, per-tenant M2M credentials are retrieved from AWS Secrets Manager. These variables control that behavior.
+M2M credential support exists behind `sharedPorts.M2MProvider`. The discovery Fetcher client uses per-tenant credentials only when an M2M provider is injected during bootstrap. These variables control that behavior.
 
 | Name | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
 | `M2M_TARGET_SERVICE` | `string` | `fetcher` | No | Target service name for AWS Secrets Manager M2M credential path. |
 | `M2M_CREDENTIAL_CACHE_TTL_SEC` | `int` | `300` | No | L2 (Redis) cache TTL (seconds) for M2M credentials. L1 (in-memory) is fixed at 30s. |
-| `AWS_REGION` | `string` | _(empty)_ | **Yes** (if M2M) | AWS region for Secrets Manager. |
+| `AWS_REGION` | `string` | _(empty)_ | No | Optional AWS region for Secrets Manager. When empty, the AWS SDK uses its default configuration chain. |
 
 ## 4. How to Activate
 
@@ -82,13 +82,13 @@ When the matcher calls Fetcher in multi-tenant mode, per-tenant M2M credentials 
 
 5. **Start the matcher service.** On startup, the bootstrap sequence initializes `tmpostgres.Manager`, `tmrabbitmq.Manager`, and configures Redis key prefixing.
 
-6. **If the service calls Fetcher in multi-tenant mode** (M2M credentials):
+6. **If the service calls Fetcher with an injected M2M provider**:
    ```bash
    export AWS_REGION=us-east-1
    export M2M_TARGET_SERVICE=fetcher  # default
    export M2M_CREDENTIAL_CACHE_TTL_SEC=300  # 5 min L2 cache
    ```
-   Ensure the service's IAM role has `secretsmanager:GetSecretValue` permission for path `tenants/*/*/matcher/m2m/fetcher/credentials`.
+   Ensure the service's IAM role has `secretsmanager:GetSecretValue` permission for path `tenants/*/*/matcher/m2m/fetcher/credentials`. `AWS_REGION` is optional when the AWS SDK default configuration chain can resolve a region.
 
 7. **Verify logs** show multi-tenant initialization messages (see next section).
 
@@ -104,7 +104,7 @@ When the matcher calls Fetcher in multi-tenant mode, per-tenant M2M credentials 
 
 5. **Monitor connection pools.** With `DB_METRICS_INTERVAL_SEC` (default: 15s), database pool metrics are reported per-tenant. Verify pool counts align with the number of active tenants.
 
-6. **Verify M2M credential retrieval** (if Fetcher integration is active). When the matcher calls Fetcher endpoints for a tenant, check logs for successful credential fetch from AWS Secrets Manager. On the first call per tenant, expect a Secrets Manager round-trip; subsequent calls within the cache TTL should show L1/L2 cache hits.
+6. **Verify M2M credential retrieval** (if an M2M provider is injected). When the matcher calls Fetcher endpoints for a tenant, check logs for successful credential fetch from AWS Secrets Manager. On the first call per tenant, expect a Secrets Manager round-trip; subsequent calls within the cache TTL should show L1/L2 cache hits.
 
 ## 6. How to Deactivate
 
@@ -148,7 +148,7 @@ The pgManager periodically (every `MULTI_TENANT_CONNECTIONS_CHECK_INTERVAL_SEC`,
 
 ### M2M credential caching
 
-When M2M is active, credentials are cached at two levels: L1 (in-memory, 30s fixed) for hot-path performance, L2 (Redis, `M2M_CREDENTIAL_CACHE_TTL_SEC` default 300s) for cross-pod consistency. On 401 from the target service, both cache levels are invalidated and the next request re-fetches from AWS Secrets Manager.
+When an M2M provider is injected, credentials are cached at two levels: L1 (in-memory, 30s fixed) for hot-path performance, L2 (Redis, `M2M_CREDENTIAL_CACHE_TTL_SEC` default 300s) for cross-pod consistency. On 401 from the target service, both cache levels are invalidated and the next request re-fetches from AWS Secrets Manager.
 
 ## 8. Common Errors
 
@@ -187,13 +187,15 @@ Request Flow (multi-tenant):
     └──> Redis key prefix: tenant:{tenantID}:*
     |
     v
-  Handler ──> Service ──> Repository ──> InfrastructureProvider ──> Tenant DB
-                 |                                                    (isolated)
+  Handler ──> Service ──> Repository ──> InfrastructureProvider ──> tenant-aware DB resolver
+                 |                                                    |
+                 |                                                    v
+                 |                                              SET LOCAL search_path
                  |
                  └──> [If calling Fetcher]
                         |
                         v
-                      M2MCredentialProvider
+                      M2MCredentialProvider (if injected)
                         ├── L1 cache (in-memory, 30s)
                         ├── L2 cache (Redis, M2M_CREDENTIAL_CACHE_TTL_SEC)
                         └── AWS Secrets Manager (on cache miss)
@@ -220,7 +222,7 @@ Background Workers (multi-tenant):
   ListTenants() ──> iterates all tenant schemas (including default tenant)
     |
     v
-  Per-tenant: tmpostgres.Manager.GetConnection(tenantID) ──> Tenant DB
+  Per-tenant: tmpostgres.Manager.GetConnection(tenantID) ──> tenant-aware DB resolver + tenant schema
 
 Connection Health (background):
 
@@ -272,4 +274,3 @@ func TenantContext(parent context.Context, tenantID string) context.Context {
 ```
 
 If you find yourself writing the dual-key incantation more than twice, factor it out — silent tenant-failures are operationally expensive and difficult to detect in CI.
-

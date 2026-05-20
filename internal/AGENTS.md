@@ -1,18 +1,8 @@
 # Internal Directory (`internal/`)
 
-This directory contains the private application code, organized by Bounded Contexts following the Modular Monolith architecture with DDD + Hexagonal Architecture + CQRS-light.
+This directory contains the private application code, organized as seven bounded contexts plus supporting packages following the Modular Monolith architecture with DDD + Hexagonal Architecture + CQRS-light.
 
 ## Bounded Contexts
-
-### Auth (`internal/auth`)
-- **Role:** Security adapter.
-- **Features:** JWT extraction (HS256/384/512), tenant context resolution, authorization middleware via lib-auth RBAC, PostgreSQL search_path isolation.
-- [Documentation](auth/README.md)
-
-### Bootstrap (`internal/bootstrap`)
-- **Role:** Composition Root.
-- **Features:** App configuration (zero-config defaults + env overrides), dependency injection, server lifecycle, infrastructure connections (PostgreSQL primary/replica, Redis, RabbitMQ, S3), systemplane integration (runtime config authority), dynamic infrastructure switching, worker lifecycle management, health checks, rate limiting, observability (OpenTelemetry), and migration orchestration with preflight guards for irreversible cutovers such as migration 022.
-- [Documentation](bootstrap/README.md)
 
 ### Configuration (`internal/configuration`)
 - **Role:** Metadata management.
@@ -49,10 +39,27 @@ This directory contains the private application code, organized by Bounded Conte
 - **Features:** Dashboard metrics (volume, match rate, SLA, source breakdown, cash impact), async export jobs (CSV/PDF with S3 storage and presigned URLs), streaming report generation, Redis-based dashboard caching, background export/cleanup workers, rate-limited export endpoints, cursor pagination.
 - [Documentation](reporting/README.md)
 
+## Supporting Packages
+
+### Auth (`internal/auth`)
+- **Role:** Security adapter.
+- **Features:** JWT extraction (HS256/384/512), tenant context resolution, authorization middleware via lib-auth RBAC, PostgreSQL search_path isolation.
+- [Documentation](auth/README.md)
+
+### Bootstrap (`internal/bootstrap`)
+- **Role:** Composition root.
+- **Features:** App configuration (zero-config defaults + env overrides), dependency injection, server lifecycle, infrastructure connections (PostgreSQL primary/replica, Redis, RabbitMQ, S3), systemplane integration (runtime config authority), dynamic infrastructure switching, worker lifecycle management, health checks, rate limiting, observability (OpenTelemetry), and migration orchestration with preflight guards for irreversible cutovers such as migration 022.
+- [Documentation](bootstrap/README.md)
+
 ### Shared (`internal/shared`)
-- **Role:** Shared kernel (cross-cutting concerns), including transactional outbox integration.
-- **Features:** Canonical domain entities (Transaction, MatchRule, FieldMap, AuditLog, OutboxEvent), fee calculation engine (schedule calculation, verifier, normalization, fee schedule/rule models), cross-context bridge adapters, common SQL utilities, RabbitMQ publisher with confirms and DLQ, idempotency middleware, tenant-aware infrastructure ports and SQL helpers, CSV formula injection prevention. Outbox persistence and dispatcher are delegated to `lib-commons/v5/commons/outbox`; matcher wires the dispatcher, registers handlers, and publishes envelopes from the bounded contexts.
+- **Role:** Shared kernel and cross-context bridge.
+- **Features:** Canonical domain entities (Transaction, MatchRule, FieldMap, AuditLog, OutboxEvent), fee calculation engine, cross-context bridge adapters, common SQL utilities, RabbitMQ publisher with confirms and DLQ, idempotency middleware, tenant-aware infrastructure ports and SQL helpers, CSV formula injection prevention. Outbox persistence and dispatcher are delegated to `lib-commons/v5/commons/outbox`; matcher wires the dispatcher, registers handlers, and publishes envelopes from the bounded contexts.
 - [Documentation](shared/README.md)
+
+### Streaming (`internal/streaming`)
+- **Role:** Event catalog and producer support.
+- **Features:** lib-streaming catalog, producer bootstrap, streaming outbox relay wiring, and manifest endpoint support.
+- [Source](streaming/)
 
 ### Testutil (`internal/testutil`)
 - **Role:** Shared test helpers.

@@ -6,7 +6,7 @@ The `internal/configuration` bounded context manages the metadata and rules that
 
 This context implements a **Hexagonal Architecture** with **CQRS** (Command Query Responsibility Segregation) to separate write and read concerns.
 
-- **Domain**: Defines core entities (`ReconciliationContext`, `Source`, `MatchRule`, `FeeSchedule`, `ReconciliationSchedule`) and business rules.
+- **Domain**: Defines core entities (`ReconciliationContext`, `Source`, `MatchRule`, `ReconciliationSchedule`, `CloneResult`) and business rules. Fee schedule domain types live in `internal/shared/domain/fee` and are exposed through configuration use cases.
 - **Adapters**:
   - **Audit**: Outbox-based audit event publisher.
   - **HTTP**: Fiber handlers exposing REST endpoints.
@@ -25,7 +25,7 @@ This context implements a **Hexagonal Architecture** with **CQRS** (Command Quer
 3.  **FieldMap**: Defines how raw source fields map to the canonical internal format.
     -   Note: A canonical `FieldMap` type also exists in `internal/shared/domain/` (the shared kernel version is authoritative for cross-context use; this context's version is for configuration-specific behavior).
 4.  **MatchRule**: Ordered list of logic to identify matching sets of transactions.
-5.  **FeeSchedule**: Fee rates and tolerances for fee verification during matching.
+5.  **FeeSchedule**: Shared fee schedule/rule models in `internal/shared/domain/fee`, used by configuration APIs and matching fee verification.
 6.  **ReconciliationSchedule**: Cron-based scheduling for automated reconciliation runs.
 7.  **CloneResult**: Value object returned by the context clone operation, containing the new context ID and a summary of all cloned child entities (sources, field maps, rules, schedules).
 
@@ -67,7 +67,7 @@ The service layer is explicitly split:
     -   `source_commands.go` — Source CRUD operations.
     -   `field_map_commands.go` — FieldMap CRUD operations.
     -   `match_rule_commands.go` — MatchRule CRUD and reorder operations.
-    -   `fee_schedule_commands.go` — FeeSchedule CRUD and simulation.
+    -   `fee_schedule_commands.go` — FeeSchedule CRUD and simulation via the shared fee schedule repository.
     -   `fee_rule_commands.go` — FeeRule CRUD operations.
     -   `schedule_commands.go` — ReconciliationSchedule CRUD operations.
     -   Clone operations are split across multiple files: `clone_commands.go` (orchestrator), `clone_sources.go` (source + field map cloning), `clone_rules.go` (match rule cloning), `clone_context_creation.go` (new context assembly).
@@ -78,8 +78,6 @@ The service layer is explicitly split:
     -   `source_queries.go` — Source get/list.
     -   `field_map_queries.go` — FieldMap get/list.
     -   `match_rule_queries.go` — MatchRule get/list.
-    -   `fee_schedule_queries.go` — FeeSchedule get/list.
-    -   `fee_rule_queries.go` — FeeRule get/list.
     -   `schedule_queries.go` — ReconciliationSchedule get/list.
 
 ### Multi-Tenancy
@@ -119,11 +117,11 @@ The context exposes a RESTful API protected by the Auth layer:
 | | PATCH | `/v1/fee-schedules/:scheduleId` | Update a fee schedule |
 | | DELETE | `/v1/fee-schedules/:scheduleId` | Delete a fee schedule |
 | | POST | `/v1/fee-schedules/:scheduleId/simulate` | Simulate fee calculation |
-| **FeeRule** | POST | `/v1/fee-schedules/:scheduleId/rules` | Create a fee rule |
-| | GET | `/v1/fee-schedules/:scheduleId/rules` | List fee rules |
-| | GET | `/v1/fee-schedules/:scheduleId/rules/:ruleId` | Get a fee rule |
-| | PATCH | `/v1/fee-schedules/:scheduleId/rules/:ruleId` | Update a fee rule |
-| | DELETE | `/v1/fee-schedules/:scheduleId/rules/:ruleId` | Delete a fee rule |
+| **FeeRule** | POST | `/v1/contexts/:contextId/fee-rules` | Create a fee rule |
+| | GET | `/v1/contexts/:contextId/fee-rules` | List fee rules |
+| | GET | `/v1/fee-rules/:feeRuleId` | Get a fee rule |
+| | PATCH | `/v1/fee-rules/:feeRuleId` | Update a fee rule |
+| | DELETE | `/v1/fee-rules/:feeRuleId` | Delete a fee rule |
 | **Schedule** | POST | `/v1/contexts/:contextId/schedules` | Create a reconciliation schedule |
 | | GET | `/v1/contexts/:contextId/schedules` | List schedules |
 | | GET | `/v1/contexts/:contextId/schedules/:scheduleId` | Get a schedule |
@@ -134,40 +132,52 @@ The context exposes a RESTful API protected by the Auth layer:
 
 ### Dependency Injection
 
-The module is initialized in `internal/bootstrap/init.go` and registered with the application router:
+The module is initialized in `internal/bootstrap/init_configuration.go` and registered with the application router:
 
 ```go
-// 1. Repositories (Postgres)
-configContextRepository := configContextRepo.NewRepository(postgresConnection)
-configSourceRepository, err := configSourceRepo.NewRepository(postgresConnection)
-if err != nil {
-    return fmt.Errorf("create source repository: %w", err)
-}
-configFieldMapRepository := configFieldMapRepo.NewRepository(postgresConnection)
-configMatchRuleRepository := configMatchRuleRepo.NewRepository(postgresConnection)
+// 1. Repositories (Postgres + shared fee/outbox repositories)
+scheduleRepository := configScheduleRepo.NewRepository(provider)
 
 // 2. Services (CQRS)
 configCommandUseCase, err := configCommand.NewUseCase(
-    configContextRepository,
-    configSourceRepository,
-    configFieldMapRepository,
-    configMatchRuleRepository,
+    repos.configContext,
+    repos.configSource,
+    repos.configFieldMap,
+    repos.configMatchRule,
+    configCommand.WithAuditPublisher(auditPublisher),
+    configCommand.WithFeeScheduleRepository(repos.feeSchedule),
+    configCommand.WithFeeRuleRepository(repos.configFeeRule),
+    configCommand.WithScheduleRepository(scheduleRepository),
+    configCommand.WithInfrastructureProvider(provider),
+    configCommand.WithStreamingEmitter(streamEmitter),
 )
 if err != nil {
     return fmt.Errorf("create config command use case: %w", err)
 }
 configQueryUseCase, err := configQuery.NewUseCase(
-    configContextRepository,
-    configSourceRepository,
-    configFieldMapRepository,
-    configMatchRuleRepository,
+    repos.configContext,
+    repos.configSource,
+    repos.configFieldMap,
+    repos.configMatchRule,
+    configQuery.WithScheduleRepository(scheduleRepository),
 )
 if err != nil {
     return fmt.Errorf("create config query use case: %w", err)
 }
 
 // 3. Adapter (HTTP)
-configHandler, err := configHTTP.NewHandler(configCommandUseCase, configQueryUseCase)
+configHandler, err := configHTTP.NewHandler(
+    configCommandUseCase,
+    configQueryUseCase,
+    repos.configContext,
+    repos.configSource,
+    repos.configMatchRule,
+    repos.configFieldMap,
+    repos.configFeeRule,
+    repos.feeSchedule,
+    scheduleRepository,
+    production,
+)
 if err != nil {
     return fmt.Errorf("create config handler: %w", err)
 }

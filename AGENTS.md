@@ -6,7 +6,7 @@ Universal entry point for any AI coding agent working on the Matcher codebase.
 
 **Matcher** is a transaction reconciliation engine built by Lerian Studio. It automates matching between a ledger (Midaz) and external systems (banks, payment processors, ERPs), applying configurable rules, managing exceptions, and maintaining an immutable audit trail.
 
-- **Language**: Go 1.26 (module `go 1.26.2`, toolchain `1.26.2`)
+- **Language**: Go 1.26.3 (module `go 1.26.3`; CI/Docker pinned to `1.26.3`)
 - **Architecture**: Modular monolith — DDD + Hexagonal Architecture + CQRS-light
 - **Database**: PostgreSQL 17, schema-per-tenant isolation
 - **Cache/Locking**: Valkey 8 (Redis-compatible)
@@ -17,6 +17,7 @@ Universal entry point for any AI coding agent working on the Matcher codebase.
 ## Quick Start
 
 ```bash
+export SYSTEMPLANE_SECRET_MASTER_KEY="$(openssl rand -base64 32 | tr -d '\n')"
 make up          # Start Postgres, Redis, RabbitMQ, SeaweedFS, app
 make migrate-up  # Apply database migrations
 make dev         # Live reload on :4018
@@ -28,7 +29,7 @@ Health: `GET http://localhost:4018/health`
 
 ## Architecture Overview
 
-Eight bounded contexts under `internal/`, each following hexagonal structure:
+Seven bounded contexts under `internal/`, each following hexagonal structure:
 
 | Context | Role |
 |---------|------|
@@ -39,9 +40,8 @@ Eight bounded contexts under `internal/`, each following hexagonal structure:
 | `exception` | Exception lifecycle, disputes, evidence, resolutions |
 | `governance` | Immutable audit logs, hash chains, archival |
 | `reporting` | Dashboard analytics, export jobs (CSV/PDF) |
-| `outbox` | Reliable event publication via transactional outbox |
 
-Plus: `auth/` (JWT/RBAC), `bootstrap/` (composition root), `shared/` (shared kernel), `testutil/` (test helpers).
+Plus: `auth/` (JWT/RBAC), `bootstrap/` (composition root), `shared/` (shared kernel), `streaming/` (lib-streaming catalog/producer/manifest), and `testutil/` (test helpers).
 
 ### Per-Context Structure
 
@@ -89,9 +89,10 @@ Validate with `pkg/assert`. Never panic. Return `(*T, error)`.
 ### Service Methods
 ```go
 func (uc *UseCase) RunMatch(ctx context.Context, input RunMatchInput) (*MatchRun, error) {
-    track := libCommons.NewTrackingFromContext(ctx)
-    ctx, span := track.Tracer.Start(ctx, "matching.run_match")
+    logger, tracer, _, _ := libCommons.NewTrackingFromContext(ctx)
+    ctx, span := tracer.Start(ctx, "matching.run_match")
     defer span.End()
+    _ = logger
     // ...
 }
 ```

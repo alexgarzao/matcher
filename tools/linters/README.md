@@ -33,6 +33,14 @@ Enforces transaction safety patterns:
 
 **Why?** Financial data requires strict transaction safety with tenant isolation.
 
+### 4. Goroutine Leak Linter (`goroutineleak`)
+
+Flags packages that spawn goroutines without a `TestMain` using `goleak.VerifyTestMain`.
+
+### 5. Determinism Linter (`determinism`)
+
+Flags `time.Now()` and `uuid.New()` in test functions that construct entities via `New{Entity}` constructors. Runs as an advisory check under `make lint-custom`.
+
 ## Usage
 
 ### Run All Custom Linters (Warning Mode)
@@ -41,7 +49,7 @@ Enforces transaction safety patterns:
 make lint-custom
 ```
 
-This runs all linters but treats violations as warnings. Use during development.
+This runs `entityconstructor`, `observability`, and `repositorytx`, then runs `determinism` as an advisory non-blocking check.
 
 ### Run All Custom Linters (Strict Mode)
 
@@ -49,19 +57,18 @@ This runs all linters but treats violations as warnings. Use during development.
 make lint-custom-strict
 ```
 
-This fails on any violation. Use in CI after cleanup is complete.
+This runs the strict analyzer set with `goroutineleak` enabled. `determinism` is not strict yet.
 
 ### Run Standalone
 
 ```bash
-# Run all analyzers on specific packages
-go run ./tools/linters/matcherlint/... ./internal/.../domain/entities/...
+mkdir -p bin
+cd tools && go build -o ../bin/matcherlint ./linters/matcherlint/...
+cd ..
 
-# Run on services
-go run ./tools/linters/matcherlint/... ./internal/.../services/...
-
-# Run on postgres adapters
-go run ./tools/linters/matcherlint/... ./internal/.../adapters/postgres/...
+go vet -vettool=bin/matcherlint ./internal/.../domain/entities/...
+go vet -vettool=bin/matcherlint ./internal/.../services/...
+go vet -vettool=bin/matcherlint ./internal/.../adapters/postgres/...
 ```
 
 ## Adding New Linters
@@ -88,4 +95,4 @@ Note: Plugin support requires building golangci-lint from source with CGO enable
 
 ## Pattern Reference
 
-See [LINT_ENHANCEMENTS.md](../../LINT_ENHANCEMENTS.md) for detailed pattern documentation.
+See `tools/linters/*/analyzer.go` for the current pattern definitions.

@@ -24,7 +24,7 @@ internal/ingestion/
 │   │   ├── currency.go  # Currency normalization
 │   │   ├── normalizer.go # Field normalization
 │   │   └── xml_elements.go # XML element traversal
-│   ├── postgres/        # Job, transaction, and outbox repositories
+│   ├── postgres/        # Job and transaction repositories; outbox persistence is provided by lib-commons/v5/commons/outbox/postgres and wired in bootstrap
 │   ├── redis/           # Deduplication service
 │   └── rabbitmq/        # Event publisher
 ├── domain/

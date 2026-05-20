@@ -81,7 +81,7 @@ When deploying this application:
 
 ### Development Environment
 
-For local development, use `.env` files copied from the `.env.example` files provided in the repository. These files are gitignored and should never be committed.
+For local development, defaults are baked into the binary. If you need overrides, set environment variables directly or create a local `config/.env` file using `config/.config-map.example` as the reference. Do not commit local env files.
 
 ### Production Environment
 
