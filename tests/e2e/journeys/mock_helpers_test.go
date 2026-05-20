@@ -4,12 +4,14 @@ package journeys
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 
+	"github.com/LerianStudio/matcher/tests/e2e"
 	"github.com/LerianStudio/matcher/tests/e2e/mock"
 )
 
@@ -43,6 +45,8 @@ var fetcherConfigKeys = []string{
 // systemplaneNamespace is the namespace used by Matcher for all runtime
 // config keys in the v5 systemplane admin API.
 const systemplaneNamespace = "matcher"
+
+const systemplaneRateLimitRetryAttempts = 3
 
 // systemplaneListResponse matches the v5 admin GET /system/:namespace response.
 type systemplaneListResponse struct {
@@ -89,31 +93,43 @@ func doSystemplaneRequest(method, url string, body io.Reader, headers map[string
 func readSystemplaneKeyValue(appBaseURL, key string) (any, bool, error) {
 	url := fmt.Sprintf("%s/system/%s/%s", appBaseURL, systemplaneNamespace, key)
 
-	resp, err := systemplaneHTTPClient.Get(url) //nolint:noctx // test helper
-	if err != nil {
-		return nil, false, fmt.Errorf("get systemplane key %s: %w", key, err)
-	}
-	defer resp.Body.Close() //nolint:errcheck // test helper
+	for attempt := 1; attempt <= systemplaneRateLimitRetryAttempts; attempt++ {
+		resp, err := systemplaneHTTPClient.Get(url) //nolint:noctx // test helper
+		if err != nil {
+			return nil, false, fmt.Errorf("get systemplane key %s: %w", key, err)
+		}
 
-	body, readErr := io.ReadAll(resp.Body)
-	if readErr != nil {
-		return nil, false, fmt.Errorf("read systemplane key %s body: %w", key, readErr)
+		body, readErr := io.ReadAll(resp.Body)
+		resp.Body.Close() //nolint:errcheck // test helper
+		if readErr != nil {
+			return nil, false, fmt.Errorf("read systemplane key %s body: %w", key, readErr)
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests && attempt < systemplaneRateLimitRetryAttempts {
+			if err := flushSystemplaneRateLimitKeys(); err != nil {
+				return nil, false, fmt.Errorf("flush rate-limit keys after systemplane key %s returned 429: %w", key, err)
+			}
+
+			continue
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, false, nil
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, false, fmt.Errorf("systemplane key %s returned %d: %s", key, resp.StatusCode, string(body))
+		}
+
+		var entry systemplaneGetResponse
+		if err := json.Unmarshal(body, &entry); err != nil {
+			return nil, false, fmt.Errorf("parse systemplane key %s: %w", key, err)
+		}
+
+		return entry.Value, true, nil
 	}
 
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, false, nil
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, false, fmt.Errorf("systemplane key %s returned %d: %s", key, resp.StatusCode, string(body))
-	}
-
-	var entry systemplaneGetResponse
-	if err := json.Unmarshal(body, &entry); err != nil {
-		return nil, false, fmt.Errorf("parse systemplane key %s: %w", key, err)
-	}
-
-	return entry.Value, true, nil
+	return nil, false, fmt.Errorf("systemplane key %s exceeded retry budget", key)
 }
 
 // readFetcherSnapshot captures the current values of fetcher config keys.
@@ -147,28 +163,61 @@ func putSystemplaneValues(appBaseURL string, values map[string]any) error {
 
 		url := fmt.Sprintf("%s/system/%s/%s", appBaseURL, systemplaneNamespace, key)
 
-		req, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(body)) //nolint:noctx // test helper
-		if err != nil {
-			return fmt.Errorf("create put request for %s: %w", key, err)
-		}
+		var lastStatus int
+		var lastBody []byte
 
-		req.Header.Set("Content-Type", "application/json")
+		for attempt := 1; attempt <= systemplaneRateLimitRetryAttempts; attempt++ {
+			req, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(body)) //nolint:noctx // test helper
+			if err != nil {
+				return fmt.Errorf("create put request for %s: %w", key, err)
+			}
 
-		resp, err := systemplaneHTTPClient.Do(req)
-		if err != nil {
-			return fmt.Errorf("put systemplane key %s: %w", key, err)
-		}
+			req.Header.Set("Content-Type", "application/json")
 
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close() //nolint:errcheck // test helper
+			resp, err := systemplaneHTTPClient.Do(req)
+			if err != nil {
+				return fmt.Errorf("put systemplane key %s: %w", key, err)
+			}
 
-		// v5 returns 204 No Content on success.
-		if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+			respBody, _ := io.ReadAll(resp.Body)
+			resp.Body.Close() //nolint:errcheck // test helper
+			lastStatus = resp.StatusCode
+			lastBody = respBody
+
+			// v5 returns 204 No Content on success.
+			if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusOK {
+				break
+			}
+
+			if resp.StatusCode == http.StatusTooManyRequests && attempt < systemplaneRateLimitRetryAttempts {
+				if err := flushSystemplaneRateLimitKeys(); err != nil {
+					return fmt.Errorf("flush rate-limit keys after put systemplane key %s returned 429: %w", key, err)
+				}
+
+				continue
+			}
+
 			return fmt.Errorf("put systemplane key %s returned %d: %s", key, resp.StatusCode, string(respBody))
+		}
+
+		if lastStatus != http.StatusNoContent && lastStatus != http.StatusOK {
+			return fmt.Errorf("put systemplane key %s returned %d after retries: %s", key, lastStatus, string(lastBody))
 		}
 	}
 
 	return nil
+}
+
+func flushSystemplaneRateLimitKeys() error {
+	cfg := e2e.GetConfig()
+	if cfg == nil {
+		cfg = e2e.LoadConfig()
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	return e2e.NewStackChecker(cfg).FlushRateLimitKeys(ctx)
 }
 
 // readSystemplaneSettings reads keys from the v5 systemplane namespace.

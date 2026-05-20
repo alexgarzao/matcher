@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
@@ -121,4 +122,42 @@ func TestFormatResults_LatencyRounding(t *testing.T) {
 	output := FormatResults(results)
 
 	assert.Contains(t, output, "1ms")
+}
+
+func TestFlushRateLimitKeysDeletesOwnedLayouts(t *testing.T) {
+	cfg := LoadConfig()
+	sc := NewStackChecker(cfg)
+	client := sc.newRedisClient()
+
+	ctx := context.Background()
+	suffix := strings.ReplaceAll(t.Name(), "/", ":")
+	ownedKeys := []string{
+		"matcher:ratelimit:admin:" + suffix,
+		"tenant:test-tenant:matcher:ratelimit:admin:" + suffix,
+		"ratelimit:admin:" + suffix,
+		"tenant:test-tenant:ratelimit:admin:" + suffix,
+	}
+	unrelatedKey := "tenant:test-tenant:another-service:ratelimit:admin:" + suffix
+	allKeys := append(append([]string{}, ownedKeys...), unrelatedKey)
+
+	t.Cleanup(func() {
+		_ = client.Del(ctx, allKeys...).Err()
+		_ = client.Close()
+	})
+
+	for _, key := range allKeys {
+		require.NoError(t, client.Set(ctx, key, "1", time.Minute).Err())
+	}
+
+	require.NoError(t, sc.FlushRateLimitKeys(ctx))
+
+	for _, key := range ownedKeys {
+		exists, err := client.Exists(ctx, key).Result()
+		require.NoError(t, err)
+		assert.Zero(t, exists, "expected %s to be flushed", key)
+	}
+
+	exists, err := client.Exists(ctx, unrelatedKey).Result()
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), exists, "unrelated service-owned rate-limit keys must not be flushed")
 }

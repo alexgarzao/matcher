@@ -203,24 +203,21 @@ func (sc *StackChecker) newRedisClient() *redis.Client {
 // FlushRateLimitKeys removes all rate limit keys from Redis.
 // This ensures e2e tests start with a clean rate limit state.
 //
-// Key layout: lib-commons' rate limiter stores counters under
-// "{keyPrefix}:ratelimit:{tier}:{identity}" (see ratelimit.RateLimiter.buildKey).
-// Matcher configures the prefix as "matcher" via NewLibRateLimiter, so the
-// pattern that actually matches on a running stack is "matcher:ratelimit:*".
-// We also pre-scan unprefixed "ratelimit:*" so this helper stays correct if
-// a future refactor drops the prefix or if a test stack wires a different
-// one; both branches are deletion-only, so the extra scan is safe.
+// Key layouts: lib-commons' rate limiter stores custom-prefix counters under
+// "{keyPrefix}:ratelimit:{tier}:{identity}" and tenant-manager scopes them as
+// "tenant:{tenantID}:{key}" when request context carries a tenant. Matcher
+// configures the prefix as "matcher" via NewLibRateLimiter, so a normal e2e
+// /system request writes "tenant:*:matcher:ratelimit:*". We also scan the
+// unprefixed storage layouts so this helper stays correct if a test stack
+// drops the custom prefix. Redis glob "*" crosses colon delimiters, so every
+// scanned key is also checked segment-by-segment before deletion.
 func (sc *StackChecker) FlushRateLimitKeys(ctx context.Context) error {
 	client := sc.newRedisClient()
 	defer client.Close()
 
 	const scanBatchSize = 100
 
-	patterns := []string{
-		"matcher:ratelimit:*",
-		"ratelimit:*",
-	}
-
+	patterns := rateLimitRedisKeyPatterns()
 	for _, pattern := range patterns {
 		var cursor uint64
 
@@ -230,8 +227,9 @@ func (sc *StackChecker) FlushRateLimitKeys(ctx context.Context) error {
 				return fmt.Errorf("redis scan %q: %w", pattern, err)
 			}
 
-			if len(keys) > 0 {
-				if err := client.Del(ctx, keys...).Err(); err != nil {
+			ownedKeys := ownedRateLimitKeys(keys)
+			if len(ownedKeys) > 0 {
+				if err := client.Del(ctx, ownedKeys...).Err(); err != nil {
 					return fmt.Errorf("redis batch delete: %w", err)
 				}
 			}
@@ -244,6 +242,43 @@ func (sc *StackChecker) FlushRateLimitKeys(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func rateLimitRedisKeyPatterns() []string {
+	return []string{
+		"matcher:ratelimit:*",
+		"tenant:*:matcher:ratelimit:*",
+		"ratelimit:*",
+		"tenant:*:ratelimit:*",
+	}
+}
+
+func ownedRateLimitKeys(keys []string) []string {
+	ownedKeys := keys[:0]
+	for _, key := range keys {
+		if isOwnedRateLimitKey(key) {
+			ownedKeys = append(ownedKeys, key)
+		}
+	}
+
+	return ownedKeys
+}
+
+func isOwnedRateLimitKey(key string) bool {
+	if strings.HasPrefix(key, "matcher:ratelimit:") || strings.HasPrefix(key, "ratelimit:") {
+		return true
+	}
+
+	segments := strings.SplitN(key, ":", 5)
+	if len(segments) != 5 || segments[0] != "tenant" || segments[1] == "" {
+		return false
+	}
+
+	if segments[2] == "matcher" {
+		return segments[3] == "ratelimit" && segments[4] != ""
+	}
+
+	return segments[2] == "ratelimit" && segments[3] != "" && segments[4] != ""
 }
 
 // CleanStaleOutboxEvents removes all outbox events from previous test runs.

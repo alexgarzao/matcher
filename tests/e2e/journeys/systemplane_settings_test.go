@@ -5,6 +5,7 @@ package journeys
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -13,6 +14,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/LerianStudio/matcher/tests/e2e"
+)
+
+const (
+	rateLimitMaxOneRequest   = 1
+	defaultAdminRateLimitMax = 30
 )
 
 // TestSystemplaneSettings_TenantRateLimitAffectsProtectedRoute exercises the
@@ -64,6 +70,11 @@ import (
 func TestSystemplaneSettings_TenantRateLimitAffectsProtectedRoute(t *testing.T) {
 	cfg := e2e.GetConfig()
 	require.NotNil(t, cfg)
+	testFlusher := e2e.NewStackChecker(cfg)
+	flushCtx := context.Background()
+
+	require.NoError(t, testFlusher.FlushRateLimitKeys(flushCtx))
+	require.NoError(t, ensureSaneAdminRateLimitBaseline(cfg.AppBaseURL))
 
 	// Snapshot current values for restore. We mutate three keys to coerce
 	// the admin rate limiter into a throttling-tight state. rate_limit.enabled
@@ -78,19 +89,13 @@ func TestSystemplaneSettings_TenantRateLimitAffectsProtectedRoute(t *testing.T) 
 	origAdminExpiry, adminExpiryFound, err := readSystemplaneKeyValue(cfg.AppBaseURL, "rate_limit.admin_expiry_sec")
 	require.NoError(t, err)
 
-	// Cleanup flush helper — reusable handle so we can reset the counter
-	// before each restore PUT. Without these flushes the restore PUTs
-	// themselves get throttled against the rate_limit.admin_max=1 we just
-	// set, leaving pollution for the next test in the suite.
-	cleanupFlusher := e2e.NewStackChecker(cfg)
-
 	t.Cleanup(func() {
 		cleanupCtx := context.Background()
 
 		// Reset the rate-limit counter BEFORE any restore PUT, otherwise
 		// the restore is itself throttled by the very constraint we are
 		// trying to remove.
-		if flushErr := cleanupFlusher.FlushRateLimitKeys(cleanupCtx); flushErr != nil {
+		if flushErr := testFlusher.FlushRateLimitKeys(cleanupCtx); flushErr != nil {
 			t.Logf("cleanup: flush ratelimit keys failed: %v (restore PUTs may be rate-limited)", flushErr)
 		}
 
@@ -109,7 +114,7 @@ func TestSystemplaneSettings_TenantRateLimitAffectsProtectedRoute(t *testing.T) 
 		// and flush again so the next PUTs start from a clean counter.
 		time.Sleep(time.Second)
 
-		if flushErr := cleanupFlusher.FlushRateLimitKeys(cleanupCtx); flushErr != nil {
+		if flushErr := testFlusher.FlushRateLimitKeys(cleanupCtx); flushErr != nil {
 			t.Logf("cleanup: second flush failed: %v", flushErr)
 		}
 
@@ -141,10 +146,6 @@ func TestSystemplaneSettings_TenantRateLimitAffectsProtectedRoute(t *testing.T) 
 	// throttle the readback that verifies propagation; interleaving the
 	// flush between the tight PUT and the GETs gives us a clean zero-counter
 	// starting point after propagation settles.
-	const rateLimitMaxOneRequest = 1
-	flusher := e2e.NewStackChecker(cfg)
-	flushCtx := context.Background()
-
 	// Step 1: enable rate limiting and fix the admin expiry window. admin_max
 	// still high (docker-compose seed or whatever the prior state left), so
 	// these PUTs and the subsequent readback polling will not themselves
@@ -193,7 +194,7 @@ func TestSystemplaneSettings_TenantRateLimitAffectsProtectedRoute(t *testing.T) 
 	// "expected 200" assertion fails with a spurious 429.
 	require.NoError(
 		t,
-		flusher.FlushRateLimitKeys(flushCtx),
+		testFlusher.FlushRateLimitKeys(flushCtx),
 		"flush ratelimit:* keys before asserting throttle behavior",
 	)
 
@@ -214,6 +215,50 @@ func TestSystemplaneSettings_TenantRateLimitAffectsProtectedRoute(t *testing.T) 
 	require.NoError(t, err)
 	defer secondResp.Body.Close() //nolint:errcheck // test helper
 	assert.Equal(t, http.StatusTooManyRequests, secondResp.StatusCode, string(secondBody))
+}
+
+func ensureSaneAdminRateLimitBaseline(appBaseURL string) error {
+	enabled, ok, err := readSystemplaneKeyValue(appBaseURL, "rate_limit.enabled")
+	if err != nil {
+		return err
+	}
+
+	if !ok || enabled != true {
+		return nil
+	}
+
+	adminMax, ok, err := readSystemplaneKeyValue(appBaseURL, "rate_limit.admin_max")
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return nil
+	}
+
+	max, ok := numericSystemplaneValue(adminMax)
+	if !ok {
+		return fmt.Errorf("rate_limit.admin_max has non-numeric value %T", adminMax)
+	}
+
+	if max > rateLimitMaxOneRequest {
+		return nil
+	}
+
+	return putSystemplaneValues(appBaseURL, map[string]any{"rate_limit.admin_max": defaultAdminRateLimitMax})
+}
+
+func numericSystemplaneValue(value any) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case int:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	default:
+		return 0, false
+	}
 }
 
 // TestSystemplaneSettings_V4PathsRemoved is the contract test for the
