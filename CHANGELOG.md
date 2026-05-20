@@ -1,3 +1,5 @@
+## [2.2.0-beta.1](https://github.com/LerianStudio/matcher/compare/v2.1.2-beta.1...v2.2.0-beta.1) (2026-05-20)
+
 ## [2.1.2-beta.1](https://github.com/LerianStudio/matcher/compare/v2.1.1...v2.1.2-beta.1) (2026-05-15)
 
 # Matcher Changelog
