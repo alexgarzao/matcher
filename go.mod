@@ -8,7 +8,7 @@ require (
 	github.com/LerianStudio/lib-auth/v2 v2.8.0
 	github.com/LerianStudio/lib-commons/v5 v5.3.0
 	github.com/LerianStudio/lib-observability v1.0.0
-	github.com/LerianStudio/lib-streaming v1.5.0
+	github.com/LerianStudio/lib-streaming v1.5.1
 	github.com/LerianStudio/lib-systemplane v1.1.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/Shopify/toxiproxy/v2 v2.12.0
@@ -139,7 +139,6 @@ require (
 	github.com/moby/sys/user v0.4.0 // indirect
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/moby/term v0.5.2 // indirect
-	github.com/montanaflynn/stats v0.9.0 // indirect
 	github.com/morikuni/aec v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
