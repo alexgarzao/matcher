@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
+	"github.com/LerianStudio/lib-observability/assert"
 )
 
 // validateProductionConfig validates configuration constraints specific to production environments.

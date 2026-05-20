@@ -14,8 +14,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/exception/adapters/http/dto"
@@ -65,7 +66,7 @@ func (handler *Handlers) DispatchToExternal(fiberCtx *fiber.Ctx) error {
 		return handler.handleExceptionVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetExceptionSpanAttributes(span, tenantID, exceptionID)
+	middleware.SetExceptionSpanAttributes(span, tenantID, exceptionID)
 
 	var req dto.DispatchRequest
 

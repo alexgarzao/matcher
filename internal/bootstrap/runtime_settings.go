@@ -7,7 +7,7 @@ package bootstrap
 import (
 	"time"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
+	"github.com/LerianStudio/lib-systemplane"
 )
 
 // runtimeSettingsResolver resolves runtime configuration values from the

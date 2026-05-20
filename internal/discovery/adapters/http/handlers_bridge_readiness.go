@@ -16,9 +16,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/discovery/adapters/http/dto"
 	discoveryQuery "github.com/LerianStudio/matcher/internal/discovery/services/query"

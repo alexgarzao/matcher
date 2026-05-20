@@ -7,7 +7,7 @@ package testutil
 import (
 	"context"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 )
 
 // TestLogger is a mock logger that tracks level usage and captured messages.

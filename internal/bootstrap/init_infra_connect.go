@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
 	"github.com/LerianStudio/lib-commons/v5/commons/errgroup"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	"github.com/LerianStudio/lib-observability/assert"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
 )
 
 func cleanupConnections(

@@ -13,10 +13,10 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
 	"github.com/LerianStudio/lib-commons/v5/commons/pointers"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	"github.com/LerianStudio/matcher/internal/exception/domain/entities"
 	"github.com/LerianStudio/matcher/internal/exception/domain/value_objects"

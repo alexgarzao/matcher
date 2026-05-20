@@ -12,7 +12,7 @@ import (
 	"context"
 	"fmt"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 )
 
 // startupSelfProbeRunner matches RunSelfProbe's signature. Abstracted so tests

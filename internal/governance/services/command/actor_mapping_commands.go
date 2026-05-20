@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"time"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 	streaming "github.com/LerianStudio/lib-streaming"
 
 	"github.com/LerianStudio/matcher/internal/governance/domain/entities"

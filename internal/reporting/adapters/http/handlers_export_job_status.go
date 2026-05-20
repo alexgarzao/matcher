@@ -13,6 +13,7 @@ import (
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
 	"github.com/LerianStudio/lib-commons/v5/commons/pointers"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/reporting/services/query"
@@ -188,7 +189,7 @@ func (handler *ExportJobHandlers) ListExportJobsByContext(fiberCtx *fiber.Ctx) e
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	cursor, limit, err := parseTimestampCursorPagination(fiberCtx)
 	if err != nil {

@@ -15,9 +15,9 @@ import (
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
 	"github.com/LerianStudio/lib-commons/v5/commons/circuitbreaker"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	"github.com/LerianStudio/lib-commons/v5/commons/opentelemetry/metrics"
 	"github.com/LerianStudio/lib-commons/v5/commons/outbox"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/metrics"
 	streaming "github.com/LerianStudio/lib-streaming"
 
 	streamingcatalog "github.com/LerianStudio/matcher/internal/streaming/catalog"

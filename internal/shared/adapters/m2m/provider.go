@@ -22,10 +22,10 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
 	"github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/valkey"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/shared/ports"
 )

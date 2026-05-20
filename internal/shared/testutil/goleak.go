@@ -49,15 +49,15 @@ func LeakOptions() []goleak.Option {
 }
 
 // LeakOptionsWithSystemplane returns LeakOptions plus systemplane listener
-// ignores. Use this in packages (e.g., bootstrap) that wire the lib-commons
-// v5 systemplane runtime-config client — its Subscribe goroutine blocks on
+// ignores. Use this in packages (e.g., bootstrap) that wire the lib-systemplane
+// runtime-config client — its Subscribe goroutine blocks on
 // a pgx LISTEN connection and terminates only when the client's context
 // is cancelled at shutdown.
 func LeakOptionsWithSystemplane() []goleak.Option {
 	return append(LeakOptions(),
-		goleak.IgnoreAnyFunction("github.com/LerianStudio/lib-commons/v5/commons/systemplane/internal/postgres.(*Store).Subscribe"),
-		goleak.IgnoreAnyFunction("github.com/LerianStudio/lib-commons/v5/commons/systemplane/internal/postgres.(*Store).listenLoop"),
-		goleak.IgnoreAnyFunction("github.com/LerianStudio/lib-commons/v5/commons/systemplane.(*Client).Close.func2"),
+		goleak.IgnoreAnyFunction("github.com/LerianStudio/lib-systemplane/internal/postgres.(*Store).Subscribe"),
+		goleak.IgnoreAnyFunction("github.com/LerianStudio/lib-systemplane/internal/postgres.(*Store).listenLoop"),
+		goleak.IgnoreAnyFunction("github.com/LerianStudio/lib-systemplane.(*Client).Close.func2"),
 	)
 }
 

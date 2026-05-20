@@ -11,8 +11,8 @@ import (
 
 	"github.com/google/uuid"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	matching "github.com/LerianStudio/matcher/internal/matching/domain/services"
 	matchingMetrics "github.com/LerianStudio/matcher/internal/matching/services/metrics"

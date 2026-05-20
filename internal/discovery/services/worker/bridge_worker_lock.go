@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 )
 
 // acquireLock is a thin wrapper over the infrastructure provider's Redis

@@ -29,8 +29,8 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/mock/gomock"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	libCommons "github.com/LerianStudio/lib-observability"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/ingestion/domain/entities"

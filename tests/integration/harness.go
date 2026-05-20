@@ -23,9 +23,9 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.opentelemetry.io/otel/trace/noop"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	tmcore "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/core"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	configContextRepo "github.com/LerianStudio/matcher/internal/configuration/adapters/postgres/context"

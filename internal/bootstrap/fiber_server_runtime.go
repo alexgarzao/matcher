@@ -12,12 +12,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
+	"github.com/LerianStudio/lib-observability/assert"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 )

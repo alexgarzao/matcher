@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
+	libLog "github.com/LerianStudio/lib-observability/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

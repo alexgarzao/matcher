@@ -13,6 +13,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/configuration/adapters/http/dto"
 	"github.com/LerianStudio/matcher/internal/configuration/services/command"
@@ -58,7 +59,7 @@ func (handler *Handler) CreateFeeSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	items, err := parseFeeScheduleItems(payload.Items)
 	if err != nil {
@@ -116,7 +117,7 @@ func (handler *Handler) ListFeeSchedules(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	limitStr := fiberCtx.Query("limit", strconv.Itoa(constants.DefaultPaginationLimit))
 
@@ -170,7 +171,7 @@ func (handler *Handler) GetFeeSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	scheduleID, err := parseUUIDParam(fiberCtx, "scheduleId")
 	if err != nil {
@@ -225,7 +226,7 @@ func (handler *Handler) UpdateFeeSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	scheduleID, err := parseUUIDParam(fiberCtx, "scheduleId")
 	if err != nil {
@@ -292,7 +293,7 @@ func (handler *Handler) DeleteFeeSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	scheduleID, err := parseUUIDParam(fiberCtx, "scheduleId")
 	if err != nil {
@@ -354,7 +355,7 @@ func (handler *Handler) SimulateFeeSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	scheduleID, err := parseUUIDParam(fiberCtx, "scheduleId")
 	if err != nil {

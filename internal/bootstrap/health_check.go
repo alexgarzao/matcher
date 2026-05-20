@@ -46,11 +46,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	sharedhttp "github.com/LerianStudio/lib-commons/v5/commons/net/http"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
+	libLog "github.com/LerianStudio/lib-observability/log"
 	streaming "github.com/LerianStudio/lib-streaming"
 
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"

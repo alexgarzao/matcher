@@ -14,9 +14,10 @@ import (
 	"github.com/shopspring/decimal"
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/middleware"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/matching/adapters/http/dto"
@@ -68,7 +69,7 @@ func (handler *Handler) CreateAdjustment(fiberCtx *fiber.Ctx) error {
 		return returnErr
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var payload CreateAdjustmentRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &payload); err != nil {

@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"time"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	tmcache "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/cache"
 	"github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/client"
 	tmpostgres "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/postgres"
 	tmrabbitmq "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/rabbitmq"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 )

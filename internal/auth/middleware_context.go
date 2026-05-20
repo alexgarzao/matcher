@@ -10,8 +10,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/LerianStudio/lib-auth/v3/auth/middleware"
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
+	"github.com/LerianStudio/lib-auth/v2/auth/middleware"
+	"github.com/LerianStudio/lib-observability/assert"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 )

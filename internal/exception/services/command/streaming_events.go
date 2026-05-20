@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/trace"
 
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	disputeDomain "github.com/LerianStudio/matcher/internal/exception/domain/dispute"
 	"github.com/LerianStudio/matcher/internal/exception/domain/entities"

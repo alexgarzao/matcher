@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/configuration/adapters/http/dto"
@@ -61,7 +62,7 @@ func (handler *Handler) CreateSource(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var req dto.CreateSourceRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &req); err != nil {
@@ -124,7 +125,7 @@ func (handler *Handler) ListSources(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	cursor, limit, err := libHTTP.ParseOpaqueCursorPagination(fiberCtx)
 	if err != nil {
@@ -222,7 +223,7 @@ func (handler *Handler) GetSource(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	sourceID, err := parseUUIDParam(fiberCtx, "sourceId")
 	if err != nil {
@@ -286,7 +287,7 @@ func (handler *Handler) UpdateSource(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	sourceID, err := parseUUIDParam(fiberCtx, "sourceId")
 	if err != nil {
@@ -356,7 +357,7 @@ func (handler *Handler) DeleteSource(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	sourceID, err := parseUUIDParam(fiberCtx, "sourceId")
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	authMiddleware "github.com/LerianStudio/lib-auth/v3/auth/middleware"
+	authMiddleware "github.com/LerianStudio/lib-auth/v2/auth/middleware"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

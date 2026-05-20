@@ -8,8 +8,8 @@ import (
 	"context"
 	"sync/atomic"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-systemplane"
 
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"
 )

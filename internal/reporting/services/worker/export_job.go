@@ -13,10 +13,10 @@ import (
 	"os"
 	"time"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
 	libS3 "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/s3"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	"github.com/LerianStudio/matcher/internal/reporting/domain/entities"
 	reportingMetrics "github.com/LerianStudio/matcher/internal/reporting/services/metrics"

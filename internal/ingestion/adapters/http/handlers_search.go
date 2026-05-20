@@ -16,8 +16,9 @@ import (
 	"github.com/shopspring/decimal"
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/ingestion/adapters/http/dto"
@@ -66,7 +67,7 @@ func (handler *Handlers) IgnoreTransaction(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	transactionID, err := uuid.Parse(fiberCtx.Params("transactionId"))
 	if err != nil {
@@ -140,7 +141,7 @@ func (handler *Handlers) SearchTransactions(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var req dto.SearchTransactionsRequest
 	if err := fiberCtx.QueryParser(&req); err != nil {

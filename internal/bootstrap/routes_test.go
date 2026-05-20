@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	authMiddleware "github.com/LerianStudio/lib-auth/v3/auth/middleware"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	authMiddleware "github.com/LerianStudio/lib-auth/v2/auth/middleware"
 	"github.com/LerianStudio/lib-commons/v5/commons/net/http/ratelimit"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	swagger "github.com/LerianStudio/matcher/docs/swagger"
 	"github.com/LerianStudio/matcher/internal/auth"

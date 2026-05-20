@@ -12,7 +12,7 @@ package observability
 import (
 	"sync"
 
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 )
 
 // matcherRedactor and matcherRedactorOnce back the lazily-initialized

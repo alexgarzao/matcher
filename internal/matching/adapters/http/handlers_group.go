@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/matching/services/command"
@@ -63,7 +64,7 @@ func (handler *Handler) Unmatch(fiberCtx *fiber.Ctx) error {
 		return returnErr
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var payload UnmatchRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &payload); err != nil {

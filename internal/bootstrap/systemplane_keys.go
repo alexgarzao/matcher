@@ -7,7 +7,7 @@ package bootstrap
 import (
 	"fmt"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
+	"github.com/LerianStudio/lib-systemplane"
 )
 
 // systemplaneNamespace is the single namespace used for all Matcher

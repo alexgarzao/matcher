@@ -15,10 +15,10 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	pgcommon "github.com/LerianStudio/matcher/internal/ingestion/adapters/postgres/common"
 	"github.com/LerianStudio/matcher/internal/ingestion/domain/entities"

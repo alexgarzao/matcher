@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/ingestion/adapters/http/dto"
@@ -57,7 +58,7 @@ func (handler *Handlers) GetJob(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	jobID, err := uuid.Parse(fiberCtx.Params("jobId"))
 	if err != nil {
@@ -119,7 +120,7 @@ func (handler *Handlers) ListJobsByContext(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	cursor, limit, err := libHTTP.ParseOpaqueCursorPagination(fiberCtx)
 	if err != nil {
@@ -233,7 +234,7 @@ func (handler *Handlers) ListTransactionsByJob(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	jobID, err := uuid.Parse(fiberCtx.Params("jobId"))
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/configuration/adapters/http/dto"
@@ -61,7 +62,7 @@ func (handler *Handler) CreateSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var req dto.CreateScheduleRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &req); err != nil {
@@ -125,7 +126,7 @@ func (handler *Handler) ListSchedules(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	result, err := handler.scheduleRepo.FindByContextID(ctx, contextID)
 	if err != nil {
@@ -176,7 +177,7 @@ func (handler *Handler) GetSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	scheduleID, err := parseUUIDParam(fiberCtx, "scheduleId")
 	if err != nil {
@@ -245,7 +246,7 @@ func (handler *Handler) UpdateSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	scheduleID, err := parseUUIDParam(fiberCtx, "scheduleId")
 	if err != nil {
@@ -316,7 +317,7 @@ func (handler *Handler) DeleteSchedule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	scheduleID, err := parseUUIDParam(fiberCtx, "scheduleId")
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"
 )

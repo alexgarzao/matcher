@@ -13,10 +13,10 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/LerianStudio/lib-commons/v5/commons/errgroup"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
 	tmrabbitmq "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/rabbitmq"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
 
 	ingestionRabbitmq "github.com/LerianStudio/matcher/internal/ingestion/adapters/rabbitmq"
 	matchingRabbitmq "github.com/LerianStudio/matcher/internal/matching/adapters/rabbitmq"

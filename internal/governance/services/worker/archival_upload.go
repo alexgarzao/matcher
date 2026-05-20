@@ -18,8 +18,8 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
 	libS3 "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/s3"
+	"github.com/LerianStudio/lib-observability/runtime"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/governance/domain/entities"

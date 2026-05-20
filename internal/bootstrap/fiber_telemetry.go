@@ -5,6 +5,7 @@
 package bootstrap
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -16,10 +17,10 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
-	libMetrics "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry/metrics"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libMetrics "github.com/LerianStudio/lib-observability/metrics"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 )
 
 func telemetryMiddleware(
@@ -74,7 +75,7 @@ func telemetryMiddleware(
 
 		ctx = libCommons.ContextWithLogger(ctx, logger)
 		ctx = libCommons.ContextWithTracer(ctx, tracer)
-		ctx = libCommons.ContextWithHeaderID(ctx, headerID)
+		ctx = contextWithHeaderID(ctx, headerID)
 		ctx = libCommons.ContextWithMetricFactory(ctx, metricFactory)
 		fiberCtx.SetUserContext(ctx)
 
@@ -97,4 +98,21 @@ func telemetryMiddleware(
 
 		return err
 	}
+}
+
+// contextWithHeaderID preserves stable request ID extraction until lib-observability exposes a public setter.
+func contextWithHeaderID(ctx context.Context, headerID string) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	values := &libCommons.ContextValue{}
+	if existing, ok := ctx.Value(libCommons.ContextKey).(*libCommons.ContextValue); ok && existing != nil {
+		*values = *existing
+		values.AttrBag = append([]attribute.KeyValue(nil), existing.AttrBag...)
+	}
+
+	values.HeaderID = headerID
+
+	return context.WithValue(ctx, libCommons.ContextKey, values)
 }

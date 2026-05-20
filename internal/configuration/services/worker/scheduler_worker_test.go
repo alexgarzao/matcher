@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/configuration/domain/entities"
 	configPorts "github.com/LerianStudio/matcher/internal/configuration/ports"

@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/reporting/adapters/http/dto"
@@ -55,7 +56,7 @@ func (handler *Handlers) GetVolumeStats(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseDashboardFilter(fiberCtx, contextID)
 	if err != nil {
@@ -113,7 +114,7 @@ func (handler *Handlers) GetMatchRateStats(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseDashboardFilter(fiberCtx, contextID)
 	if err != nil {
@@ -171,7 +172,7 @@ func (handler *Handlers) GetSLAStats(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseDashboardFilter(fiberCtx, contextID)
 	if err != nil {
@@ -229,7 +230,7 @@ func (handler *Handlers) GetDashboardAggregates(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseDashboardFilter(fiberCtx, contextID)
 	if err != nil {
@@ -290,7 +291,7 @@ func (handler *Handlers) GetMatcherDashboardMetrics(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseDashboardFilter(fiberCtx, contextID)
 	if err != nil {
@@ -351,7 +352,7 @@ func (handler *Handlers) GetSourceBreakdown(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseDashboardFilter(fiberCtx, contextID)
 	if err != nil {
@@ -412,7 +413,7 @@ func (handler *Handlers) GetCashImpactSummary(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseDashboardFilter(fiberCtx, contextID)
 	if err != nil {

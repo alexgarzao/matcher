@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/configuration/adapters/http/dto"
@@ -61,7 +62,7 @@ func (handler *Handler) CreateFeeRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var payload dto.CreateFeeRuleRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &payload); err != nil {
@@ -132,7 +133,7 @@ func (handler *Handler) ListFeeRules(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	result, err := handler.feeRuleRepo.FindByContextID(ctx, contextID)
 	if err != nil {
@@ -177,7 +178,7 @@ func (handler *Handler) GetFeeRule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	feeRuleID, err := parseUUIDParam(fiberCtx, "feeRuleId")
 	if err != nil {
@@ -203,7 +204,7 @@ func (handler *Handler) GetFeeRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleOwnershipVerificationError(ctx, fiberCtx, span, logger, err, "configuration_fee_rule_not_found", "fee rule not found")
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, result.ContextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, result.ContextID)
 
 	if err := libHTTP.Respond(fiberCtx, fiber.StatusOK, dto.FeeRuleToResponse(result)); err != nil {
 		return fmt.Errorf("respond get fee rule: %w", err)
@@ -242,7 +243,7 @@ func (handler *Handler) UpdateFeeRule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	feeRuleID, err := parseUUIDParam(fiberCtx, "feeRuleId")
 	if err != nil {
@@ -268,7 +269,7 @@ func (handler *Handler) UpdateFeeRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleOwnershipVerificationError(ctx, fiberCtx, span, logger, err, "configuration_fee_rule_not_found", "fee rule not found")
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, existing.ContextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, existing.ContextID)
 
 	var payload dto.UpdateFeeRuleRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &payload); err != nil {
@@ -330,7 +331,7 @@ func (handler *Handler) DeleteFeeRule(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	feeRuleID, err := parseUUIDParam(fiberCtx, "feeRuleId")
 	if err != nil {
@@ -356,7 +357,7 @@ func (handler *Handler) DeleteFeeRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleOwnershipVerificationError(ctx, fiberCtx, span, logger, err, "configuration_fee_rule_not_found", "fee rule not found")
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, existing.ContextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, existing.ContextID)
 
 	if err := handler.command.DeleteFeeRuleInContext(ctx, existing.ContextID, feeRuleID); err != nil {
 		handler.logSpanError(ctx, span, logger, "failed to delete fee rule", err)

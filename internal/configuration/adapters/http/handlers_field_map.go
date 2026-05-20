@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/configuration/adapters/http/dto"
@@ -59,7 +60,7 @@ func (handler *Handler) CreateFieldMap(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	sourceID, err := parseUUIDParam(fiberCtx, "sourceId")
 	if err != nil {
@@ -124,7 +125,7 @@ func (handler *Handler) GetFieldMapBySource(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	sourceID, err := parseUUIDParam(fiberCtx, "sourceId")
 	if err != nil {
@@ -207,7 +208,7 @@ func (handler *Handler) UpdateFieldMap(fiberCtx *fiber.Ctx) error {
 		return handler.handleOwnershipVerificationError(ctx, fiberCtx, span, logger, err, "configuration_field_map_not_found", "field map not found")
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, fieldMap.ContextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, fieldMap.ContextID)
 
 	result, err := handler.command.UpdateFieldMap(ctx, fieldMapID, req.ToDomainInput())
 	if err != nil {
@@ -272,7 +273,7 @@ func (handler *Handler) DeleteFieldMap(fiberCtx *fiber.Ctx) error {
 		return handler.handleOwnershipVerificationError(ctx, fiberCtx, span, logger, err, "configuration_field_map_not_found", "field map not found")
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, fieldMap.ContextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, fieldMap.ContextID)
 
 	if err := handler.command.DeleteFieldMap(ctx, fieldMapID); err != nil {
 		handler.logSpanError(ctx, span, logger, "failed to delete field map", err)

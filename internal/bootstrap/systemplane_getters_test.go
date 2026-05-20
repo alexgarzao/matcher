@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
+	"github.com/LerianStudio/lib-systemplane"
 )
 
 // newGetterTestClient builds a real systemplane Client backed by the shared

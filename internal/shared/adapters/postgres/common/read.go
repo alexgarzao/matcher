@@ -11,7 +11,8 @@ import (
 	"fmt"
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	observability "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/shared/ports"
@@ -282,7 +283,7 @@ func applyTenantSchemaToConn(ctx context.Context, conn *sql.Conn) error {
 // and a warning is logged with tenant and error details.
 func resetSearchPath(ctx context.Context, conn *sql.Conn) {
 	if _, err := conn.ExecContext(ctx, "SET search_path TO public"); err != nil {
-		logger, _, _, _ := libCommons.NewTrackingFromContext(ctx)
+		logger, _, _, _ := observability.NewTrackingFromContext(ctx)
 
 		tenantID := auth.GetTenantID(ctx)
 

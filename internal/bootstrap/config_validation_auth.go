@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
+	"github.com/LerianStudio/lib-observability/assert"
 )
 
 // validateAuthConfig validates authentication configuration when auth is enabled.

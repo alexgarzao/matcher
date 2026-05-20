@@ -12,8 +12,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/sync/errgroup"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 )

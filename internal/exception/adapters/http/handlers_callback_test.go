@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/trace/noop"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
+	libCommons "github.com/LerianStudio/lib-observability"
 
 	"github.com/LerianStudio/matcher/internal/exception/services/command"
 	"github.com/LerianStudio/matcher/internal/exception/services/query"

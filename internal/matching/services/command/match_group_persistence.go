@@ -16,8 +16,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	matchingEntities "github.com/LerianStudio/matcher/internal/matching/domain/entities"
 	"github.com/LerianStudio/matcher/internal/matching/domain/enums"

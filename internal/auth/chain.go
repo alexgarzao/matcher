@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	authMiddleware "github.com/LerianStudio/lib-auth/v3/auth/middleware"
+	authMiddleware "github.com/LerianStudio/lib-auth/v2/auth/middleware"
 )
 
 // BuildProtectedAuthChain constructs the ordered list of Fiber middleware that

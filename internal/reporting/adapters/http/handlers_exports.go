@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/reporting/domain/entities"
@@ -46,7 +47,7 @@ func (handler *Handlers) handleExport(
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseReportFilter(fiberCtx, contextID)
 	if err != nil {
@@ -251,7 +252,7 @@ func (handler *Handlers) ExportVarianceReport(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	filter, err := parseVarianceReportFilter(fiberCtx, contextID)
 	if err != nil {

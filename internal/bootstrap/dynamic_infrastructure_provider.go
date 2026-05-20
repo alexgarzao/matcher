@@ -12,13 +12,13 @@ import (
 
 	"github.com/bxcodec/dbresolver/v2"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
 	"github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/client"
 	"github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/core"
 	tmpostgres "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/postgres"
 	tmrabbitmq "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/rabbitmq"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"

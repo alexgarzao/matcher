@@ -13,7 +13,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
+	"github.com/LerianStudio/lib-observability/assert"
 
 	vo "github.com/LerianStudio/matcher/internal/discovery/domain/value_objects"
 	"github.com/LerianStudio/matcher/internal/shared/constants"

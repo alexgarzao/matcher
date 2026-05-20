@@ -14,9 +14,9 @@ import (
 	"os"
 	"strings"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
+	"github.com/LerianStudio/lib-systemplane"
 )
 
 // Sentinel errors for systemplane initialization.

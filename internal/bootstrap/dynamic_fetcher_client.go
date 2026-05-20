@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/LerianStudio/lib-commons/v5/commons/circuitbreaker"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	discoveryFetcher "github.com/LerianStudio/matcher/internal/discovery/adapters/fetcher"
 	discoveryPorts "github.com/LerianStudio/matcher/internal/discovery/ports"

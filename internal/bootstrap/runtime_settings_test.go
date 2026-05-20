@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
+	"github.com/LerianStudio/lib-systemplane"
 )
 
 // noopSystemplaneStore is a minimal in-memory stub satisfying

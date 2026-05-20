@@ -16,10 +16,10 @@ import (
 	"strconv"
 	"strings"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
 	"github.com/LerianStudio/lib-commons/v5/commons/security"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	valueObjects "github.com/LerianStudio/matcher/internal/ingestion/domain/value_objects"
 	"github.com/LerianStudio/matcher/internal/shared/sanitize"

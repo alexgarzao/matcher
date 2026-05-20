@@ -14,7 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 	streaming "github.com/LerianStudio/lib-streaming"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"

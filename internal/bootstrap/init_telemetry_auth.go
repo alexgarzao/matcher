@@ -10,11 +10,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/LerianStudio/lib-auth/v3/auth/middleware"
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	"github.com/LerianStudio/lib-auth/v2/auth/middleware"
+	"github.com/LerianStudio/lib-observability/assert"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 )
 
 // initTelemetryAndMetrics initializes OpenTelemetry with timeout protection and

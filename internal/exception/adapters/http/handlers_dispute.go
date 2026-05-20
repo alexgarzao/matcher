@@ -14,8 +14,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/exception/adapters/http/dto"
@@ -97,7 +98,7 @@ func (handler *Handlers) OpenDispute(fiberCtx *fiber.Ctx) error {
 		return handler.handleExceptionVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetExceptionSpanAttributes(span, tenantID, exceptionID)
+	middleware.SetExceptionSpanAttributes(span, tenantID, exceptionID)
 
 	var req dto.OpenDisputeRequest
 
@@ -160,7 +161,7 @@ func (handler *Handlers) CloseDispute(fiberCtx *fiber.Ctx) error {
 		return handler.handleDisputeVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetDisputeSpanAttributes(span, tenantID, disputeID)
+	middleware.SetDisputeSpanAttributes(span, tenantID, disputeID)
 
 	var req dto.CloseDisputeRequest
 
@@ -223,7 +224,7 @@ func (handler *Handlers) SubmitEvidence(fiberCtx *fiber.Ctx) error {
 		return handler.handleDisputeVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetDisputeSpanAttributes(span, tenantID, disputeID)
+	middleware.SetDisputeSpanAttributes(span, tenantID, disputeID)
 
 	var req dto.SubmitEvidenceRequest
 
@@ -344,7 +345,7 @@ func (handler *Handlers) GetDispute(fiberCtx *fiber.Ctx) error {
 		return handler.handleDisputeVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetDisputeSpanAttributes(span, tenantID, disputeID)
+	middleware.SetDisputeSpanAttributes(span, tenantID, disputeID)
 
 	result, err := handler.queryUC.GetDispute(ctx, disputeID)
 	if err != nil {

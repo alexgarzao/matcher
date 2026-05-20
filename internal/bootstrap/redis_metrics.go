@@ -16,7 +16,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	"github.com/LerianStudio/lib-observability/runtime"
 )
 
 // ErrNilRedisClientWithoutError is returned when the redis client resolver

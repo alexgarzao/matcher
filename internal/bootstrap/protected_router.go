@@ -11,7 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 )
 
 // ErrProtectedRouterUnsupportedMethod is the sentinel returned when a caller

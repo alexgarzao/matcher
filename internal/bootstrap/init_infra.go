@@ -16,10 +16,10 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
+	libLog "github.com/LerianStudio/lib-observability/log"
 )
 
 func createPostgresConnection(cfg *Config, logger libLog.Logger) (*libPostgres.Client, error) {

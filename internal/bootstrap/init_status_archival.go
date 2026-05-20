@@ -13,7 +13,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 	streaming "github.com/LerianStudio/lib-streaming"
 
 	governanceHTTP "github.com/LerianStudio/matcher/internal/governance/adapters/http"

@@ -12,11 +12,11 @@ import (
 	"fmt"
 	"sync"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
 
 	reportingStorage "github.com/LerianStudio/matcher/internal/reporting/adapters/storage"
 )

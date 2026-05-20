@@ -19,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	"github.com/LerianStudio/lib-observability/runtime"
 )
 
 // Pool role labels emitted on every db.pool.* metric so dashboards can split

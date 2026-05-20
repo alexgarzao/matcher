@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	matchingEntities "github.com/LerianStudio/matcher/internal/matching/domain/entities"
 	matchingVO "github.com/LerianStudio/matcher/internal/matching/domain/value_objects"

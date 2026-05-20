@@ -5,7 +5,7 @@
 package bootstrap
 
 import (
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
+	"github.com/LerianStudio/lib-systemplane"
 )
 
 // matcherKeyDefs returns the list of runtime-mutable systemplane keys.

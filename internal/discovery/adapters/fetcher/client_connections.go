@@ -14,8 +14,8 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"
 )

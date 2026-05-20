@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/trace/noop"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	libCommons "github.com/LerianStudio/lib-observability"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	matchingEntities "github.com/LerianStudio/matcher/internal/matching/domain/entities"

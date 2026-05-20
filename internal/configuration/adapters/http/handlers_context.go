@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/configuration/adapters/http/dto"
@@ -56,7 +57,7 @@ func (handler *Handler) CreateContext(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	domainInput, err := req.ToDomainInput()
 	if err != nil {
@@ -113,7 +114,7 @@ func (handler *Handler) ListContexts(fiberCtx *fiber.Ctx) error {
 		return handler.unauthorized(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetTenantSpanAttribute(span, tenantID)
+	middleware.SetTenantSpanAttribute(span, tenantID)
 
 	cursor, limit, err := libHTTP.ParseOpaqueCursorPagination(fiberCtx)
 	if err != nil {
@@ -209,7 +210,7 @@ func (handler *Handler) GetContext(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	result, err := handler.contextRepo.FindByID(ctx, contextID)
 	if err != nil {
@@ -267,7 +268,7 @@ func (handler *Handler) UpdateContext(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var req dto.UpdateContextRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &req); err != nil {
@@ -327,7 +328,7 @@ func (handler *Handler) DeleteContext(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	if err := handler.command.DeleteContext(ctx, contextID); err != nil {
 		handler.logSpanError(ctx, span, logger, "failed to delete context", err)
@@ -388,7 +389,7 @@ func (handler *Handler) CloneContext(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var payload dto.CloneContextRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &payload); err != nil {

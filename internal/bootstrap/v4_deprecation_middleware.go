@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 )
 
 // v4SystemplanePathPrefix identifies the deprecated v4 admin API surface

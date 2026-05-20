@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/configuration/adapters/http/dto"
@@ -60,7 +61,7 @@ func (handler *Handler) CreateMatchRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var req dto.CreateMatchRuleRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &req); err != nil {
@@ -128,7 +129,7 @@ func (handler *Handler) ListMatchRules(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	cursor, limit, err := libHTTP.ParseOpaqueCursorPagination(fiberCtx)
 	if err != nil {
@@ -214,7 +215,7 @@ func (handler *Handler) GetMatchRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	ruleID, err := parseUUIDParam(fiberCtx, "ruleId")
 	if err != nil {
@@ -278,7 +279,7 @@ func (handler *Handler) UpdateMatchRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	ruleID, err := parseUUIDParam(fiberCtx, "ruleId")
 	if err != nil {
@@ -347,7 +348,7 @@ func (handler *Handler) DeleteMatchRule(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	ruleID, err := parseUUIDParam(fiberCtx, "ruleId")
 	if err != nil {
@@ -413,7 +414,7 @@ func (handler *Handler) ReorderMatchRules(fiberCtx *fiber.Ctx) error {
 		return handler.handleContextVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetHandlerSpanAttributes(span, tenantID, contextID)
+	middleware.SetHandlerSpanAttributes(span, tenantID, contextID)
 
 	var payload ReorderRequest
 	if err := libHTTP.ParseBodyAndValidate(fiberCtx, &payload); err != nil {

@@ -15,8 +15,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	"github.com/LerianStudio/lib-commons/v5/commons/net/http/ratelimit"
+	libLog "github.com/LerianStudio/lib-observability/log"
 	streaming "github.com/LerianStudio/lib-streaming"
 
 	reportingHTTP "github.com/LerianStudio/matcher/internal/reporting/adapters/http"

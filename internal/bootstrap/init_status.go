@@ -10,10 +10,10 @@ import (
 	"context"
 	"strings"
 
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 )
 
 // checkClientConnected returns the connected state of a client that exposes IsConnected.

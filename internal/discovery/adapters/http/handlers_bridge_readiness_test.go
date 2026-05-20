@@ -25,7 +25,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
+	libCommons "github.com/LerianStudio/lib-observability"
 
 	"github.com/LerianStudio/matcher/internal/discovery/adapters/http/dto"
 	"github.com/LerianStudio/matcher/internal/discovery/domain/entities"

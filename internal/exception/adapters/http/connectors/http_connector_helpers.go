@@ -17,7 +17,7 @@ import (
 	"unicode"
 
 	"github.com/LerianStudio/lib-commons/v5/commons/backoff"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/exception/domain/services"
 )

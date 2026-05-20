@@ -10,11 +10,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	authMiddleware "github.com/LerianStudio/lib-auth/v3/auth/middleware"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	authMiddleware "github.com/LerianStudio/lib-auth/v2/auth/middleware"
 	"github.com/LerianStudio/lib-commons/v5/commons/net/http/ratelimit"
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane/admin"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-systemplane"
+	"github.com/LerianStudio/lib-systemplane/admin"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 )

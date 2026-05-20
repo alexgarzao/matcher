@@ -12,7 +12,7 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	governanceCommand "github.com/LerianStudio/matcher/internal/governance/services/command"
 	governanceWorker "github.com/LerianStudio/matcher/internal/governance/services/worker"

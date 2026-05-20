@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"time"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	configWorker "github.com/LerianStudio/matcher/internal/configuration/services/worker"
 	discoveryWorker "github.com/LerianStudio/matcher/internal/discovery/services/worker"

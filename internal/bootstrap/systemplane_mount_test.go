@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	authMiddleware "github.com/LerianStudio/lib-auth/v3/auth/middleware"
+	authMiddleware "github.com/LerianStudio/lib-auth/v2/auth/middleware"
 	"github.com/LerianStudio/lib-commons/v5/commons/net/http/ratelimit"
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/shared/infrastructure/testutil"

@@ -13,10 +13,10 @@ import (
 	"time"
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
-	"github.com/LerianStudio/lib-commons/v5/commons/systemplane"
-	libZap "github.com/LerianStudio/lib-commons/v5/commons/zap"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
+	libZap "github.com/LerianStudio/lib-observability/zap"
+	"github.com/LerianStudio/lib-systemplane"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 )

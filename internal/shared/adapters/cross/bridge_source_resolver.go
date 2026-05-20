@@ -12,8 +12,8 @@ import (
 
 	"github.com/google/uuid"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	pgcommon "github.com/LerianStudio/matcher/internal/shared/adapters/postgres/common"
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"

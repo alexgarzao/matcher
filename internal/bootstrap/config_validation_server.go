@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
+	"github.com/LerianStudio/lib-observability/assert"
 )
 
 // validateServerConfig validates server and middleware configuration.

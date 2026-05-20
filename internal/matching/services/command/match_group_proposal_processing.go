@@ -13,8 +13,8 @@ import (
 	"github.com/shopspring/decimal"
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	matchingEntities "github.com/LerianStudio/matcher/internal/matching/domain/entities"
 	"github.com/LerianStudio/matcher/internal/matching/domain/enums"

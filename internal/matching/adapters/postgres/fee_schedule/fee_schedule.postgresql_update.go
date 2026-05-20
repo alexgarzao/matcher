@@ -10,9 +10,9 @@ import (
 	"errors"
 	"fmt"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	matchingRepos "github.com/LerianStudio/matcher/internal/matching/domain/repositories"
 	pgcommon "github.com/LerianStudio/matcher/internal/shared/adapters/postgres/common"

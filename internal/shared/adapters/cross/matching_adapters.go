@@ -14,8 +14,8 @@ import (
 
 	"github.com/google/uuid"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	configEntities "github.com/LerianStudio/matcher/internal/configuration/domain/entities"
 	configRepositories "github.com/LerianStudio/matcher/internal/configuration/domain/repositories"

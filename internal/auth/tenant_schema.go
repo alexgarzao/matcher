@@ -14,8 +14,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	"github.com/LerianStudio/lib-commons/v5/commons/assert"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
+	observability "github.com/LerianStudio/lib-observability"
+	"github.com/LerianStudio/lib-observability/assert"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 )
@@ -37,7 +38,7 @@ func QuoteIdentifier(identifier string) string {
 //
 //nolint:dogsled // NewTrackingFromContext returns 4 values; we only need tracer
 func ApplyTenantSchema(ctx context.Context, executor SQLExecutor) error {
-	_, tracer, _, _ := libCommons.NewTrackingFromContext(ctx)
+	_, tracer, _, _ := observability.NewTrackingFromContext(ctx)
 	ctx, span := tracer.Start(ctx, "auth.apply_tenant_schema")
 
 	defer span.End()

@@ -13,13 +13,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
 	tmclient "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/client"
 	tmmiddleware "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/middleware"
 	tmpostgres "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/postgres"
 	"github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/tenantcache"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"

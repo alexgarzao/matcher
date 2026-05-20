@@ -21,10 +21,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	sharedhttp "github.com/LerianStudio/lib-commons/v5/commons/net/http"
 	tmcore "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/core"
+	libCommons "github.com/LerianStudio/lib-observability"
+	libLog "github.com/LerianStudio/lib-observability/log"
 	streaming "github.com/LerianStudio/lib-streaming"
 	"github.com/LerianStudio/matcher/internal/governance/domain/entities"
 	sharedDomain "github.com/LerianStudio/matcher/internal/shared/domain"

@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/runtime"
 
 	"github.com/LerianStudio/matcher/internal/shared/constants"
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"

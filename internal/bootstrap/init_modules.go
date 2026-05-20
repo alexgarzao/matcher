@@ -12,14 +12,14 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	"github.com/LerianStudio/lib-commons/v5/commons/net/http/ratelimit"
-	libOpentelemetry "github.com/LerianStudio/lib-commons/v5/commons/opentelemetry"
 	"github.com/LerianStudio/lib-commons/v5/commons/outbox"
 	outboxpg "github.com/LerianStudio/lib-commons/v5/commons/outbox/postgres"
 	libPostgres "github.com/LerianStudio/lib-commons/v5/commons/postgres"
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
 	tmrabbitmq "github.com/LerianStudio/lib-commons/v5/commons/tenant-manager/rabbitmq"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	libOpentelemetry "github.com/LerianStudio/lib-observability/tracing"
 	streaming "github.com/LerianStudio/lib-streaming"
 
 	"github.com/LerianStudio/matcher/internal/auth"

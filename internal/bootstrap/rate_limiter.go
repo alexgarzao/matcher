@@ -10,9 +10,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/LerianStudio/lib-commons/v5/commons/log"
 	"github.com/LerianStudio/lib-commons/v5/commons/net/http/ratelimit"
 	libRedis "github.com/LerianStudio/lib-commons/v5/commons/redis"
+	"github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 )

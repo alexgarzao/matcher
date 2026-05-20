@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"strings"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	discoveryExtractionRepo "github.com/LerianStudio/matcher/internal/discovery/adapters/postgres/extraction"
 	discoveryWorker "github.com/LerianStudio/matcher/internal/discovery/services/worker"

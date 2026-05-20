@@ -12,7 +12,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	libRabbitmq "github.com/LerianStudio/lib-commons/v5/commons/rabbitmq"
-	"github.com/LerianStudio/lib-commons/v5/commons/runtime"
+	"github.com/LerianStudio/lib-observability/runtime"
 
 	sharedPorts "github.com/LerianStudio/matcher/internal/shared/ports"
 )

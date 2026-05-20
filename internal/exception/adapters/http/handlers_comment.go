@@ -13,8 +13,9 @@ import (
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/trace"
 
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
 	libHTTP "github.com/LerianStudio/lib-commons/v5/commons/net/http"
+	libLog "github.com/LerianStudio/lib-observability/log"
+	"github.com/LerianStudio/lib-observability/middleware"
 
 	"github.com/LerianStudio/matcher/internal/auth"
 	"github.com/LerianStudio/matcher/internal/exception/adapters/http/dto"
@@ -62,7 +63,7 @@ func (handler *Handlers) AddComment(fiberCtx *fiber.Ctx) error {
 		return handler.handleExceptionVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetExceptionSpanAttributes(span, tenantID, exceptionID)
+	middleware.SetExceptionSpanAttributes(span, tenantID, exceptionID)
 
 	var req dto.AddCommentRequest
 
@@ -120,7 +121,7 @@ func (handler *Handlers) ListComments(fiberCtx *fiber.Ctx) error {
 		return handler.handleExceptionVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetExceptionSpanAttributes(span, tenantID, exceptionID)
+	middleware.SetExceptionSpanAttributes(span, tenantID, exceptionID)
 
 	comments, err := handler.commentRepo.FindByExceptionID(ctx, exceptionID)
 	if err != nil {
@@ -173,7 +174,7 @@ func (handler *Handlers) DeleteComment(fiberCtx *fiber.Ctx) error {
 		return handler.handleExceptionVerificationError(ctx, fiberCtx, span, logger, err)
 	}
 
-	libHTTP.SetExceptionSpanAttributes(span, tenantID, exceptionID)
+	middleware.SetExceptionSpanAttributes(span, tenantID, exceptionID)
 
 	commentIDStr := fiberCtx.Params("commentId")
 	if commentIDStr == "" {

@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	libCommons "github.com/LerianStudio/lib-commons/v5/commons"
-	libLog "github.com/LerianStudio/lib-commons/v5/commons/log"
+	libLog "github.com/LerianStudio/lib-observability/log"
 
 	"github.com/LerianStudio/matcher/internal/shared/infrastructure/testutil"
 )
