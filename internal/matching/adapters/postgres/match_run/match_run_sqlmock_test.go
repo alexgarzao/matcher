@@ -22,6 +22,7 @@ import (
 	matchingEntities "github.com/LerianStudio/matcher/internal/matching/domain/entities"
 	matchingRepos "github.com/LerianStudio/matcher/internal/matching/domain/repositories"
 	"github.com/LerianStudio/matcher/internal/matching/domain/value_objects"
+	"github.com/LerianStudio/matcher/internal/shared/constants"
 	"github.com/LerianStudio/matcher/internal/shared/infrastructure/testutil"
 )
 
@@ -1472,7 +1473,7 @@ func TestListByContextID_Success(t *testing.T) {
 	)
 
 	mock.ExpectQuery("SELECT .+ FROM match_runs").
-		WithArgs(contextID.String()).
+		WithArgs(contextID.String(), 21).
 		WillReturnRows(rows)
 
 	results, pagination, err := repo.ListByContextID(
@@ -1504,7 +1505,7 @@ func TestListByContextID_EmptyResult(t *testing.T) {
 	})
 
 	mock.ExpectQuery("SELECT .+ FROM match_runs").
-		WithArgs(contextID.String()).
+		WithArgs(contextID.String(), 21).
 		WillReturnRows(rows)
 
 	results, pagination, err := repo.ListByContextID(
@@ -1530,7 +1531,7 @@ func TestListByContextID_QueryError(t *testing.T) {
 	contextID := uuid.New()
 
 	mock.ExpectQuery("SELECT .+ FROM match_runs").
-		WithArgs(contextID.String()).
+		WithArgs(contextID.String(), 21).
 		WillReturnError(errTestQuery)
 
 	results, pagination, err := repo.ListByContextID(
@@ -1578,7 +1579,7 @@ func TestListByContextID_WithPagination(t *testing.T) {
 	}
 
 	mock.ExpectQuery("SELECT .+ FROM match_runs").
-		WithArgs(contextID.String()).
+		WithArgs(contextID.String(), 3).
 		WillReturnRows(rowsData)
 
 	results, pagination, err := repo.ListByContextID(
@@ -1592,6 +1593,59 @@ func TestListByContextID_WithPagination(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, results, 2)
 	assert.NotEmpty(t, pagination.Next)
+}
+
+func TestListByContextID_LimitValidation_UsesSafeQueryLimit(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		limit        int
+		wantSQLLimit int
+	}{
+		{
+			name:         "negative limit uses default plus lookahead",
+			limit:        -1,
+			wantSQLLimit: constants.DefaultPaginationLimit + 1,
+		},
+		{
+			name:         "overflow limit caps at maximum plus lookahead",
+			limit:        constants.MaximumPaginationLimit + 1,
+			wantSQLLimit: constants.MaximumPaginationLimit + 1,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			repo, mock, finish := setupRepositoryWithMock(t)
+			defer finish()
+
+			contextID := uuid.New()
+			rows := sqlmock.NewRows([]string{
+				"id", "context_id", "mode", "status", "started_at",
+				"completed_at", "stats", "failure_reason", "created_at", "updated_at",
+			})
+
+			mock.ExpectQuery("SELECT .+ FROM match_runs WHERE context_id = \\$1 ORDER BY id ASC LIMIT \\$2").
+				WithArgs(contextID.String(), tt.wantSQLLimit).
+				WillReturnRows(rows)
+
+			results, pagination, err := repo.ListByContextID(
+				context.Background(),
+				contextID,
+				matchingRepos.CursorFilter{Limit: tt.limit},
+			)
+
+			require.NoError(t, err)
+			assert.Empty(t, results)
+			assert.Empty(t, pagination.Next)
+			assert.Empty(t, pagination.Prev)
+		})
+	}
 }
 
 func TestListByContextID_ScanError(t *testing.T) {
@@ -1620,7 +1674,7 @@ func TestListByContextID_ScanError(t *testing.T) {
 	)
 
 	mock.ExpectQuery("SELECT .+ FROM match_runs").
-		WithArgs(contextID.String()).
+		WithArgs(contextID.String(), 21).
 		WillReturnRows(rows)
 
 	results, pagination, err := repo.ListByContextID(

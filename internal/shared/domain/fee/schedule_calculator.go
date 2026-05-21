@@ -17,6 +17,8 @@ import (
 // in the iterative gross-from-net calculation.
 const convergencePrecision = 10
 
+var validDecimalScales = [maxRoundingScale + 1]int32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
 // FeeBreakdown contains the result of applying a fee schedule to a gross amount.
 //
 // Note: When cascading fees exceed the gross amount (e.g., flat fees totaling more
@@ -225,15 +227,7 @@ func CalculateGrossFromNet(ctx context.Context, net Money, schedule *FeeSchedule
 
 // roundAmount rounds a decimal amount to the given scale using the specified rounding mode.
 func roundAmount(amount decimal.Decimal, scale int, mode RoundingMode) decimal.Decimal {
-	if scale < 0 {
-		scale = 0
-	}
-
-	if scale > maxRoundingScale {
-		scale = maxRoundingScale
-	}
-
-	decimalScale := int32(scale)
+	decimalScale := normalizedDecimalScale(scale)
 
 	switch mode {
 	case RoundingModeHalfUp:
@@ -248,5 +242,16 @@ func roundAmount(amount decimal.Decimal, scale int, mode RoundingMode) decimal.D
 		return amount.Truncate(decimalScale)
 	default:
 		return amount.Round(decimalScale)
+	}
+}
+
+func normalizedDecimalScale(scale int) int32 {
+	switch {
+	case scale < 0:
+		return validDecimalScales[0]
+	case scale > maxRoundingScale:
+		return validDecimalScales[maxRoundingScale]
+	default:
+		return validDecimalScales[scale]
 	}
 }

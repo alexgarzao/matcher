@@ -313,10 +313,12 @@ func (repo *Repository) ListByContextID(
 		func(qe pgcommon.QueryExecutor) (runs []*matchingEntities.MatchRun, err error) {
 			orderDirection := libHTTP.ValidateSortDirection(filter.SortOrder)
 
-			limit := filter.Limit
-			if limit <= 0 {
-				limit = constants.DefaultPaginationLimit
-			}
+			limit := libHTTP.ValidateLimit(
+				filter.Limit,
+				constants.DefaultPaginationLimit,
+				constants.MaximumPaginationLimit,
+			)
+			queryLimit := limit + 1
 
 			decodedCursor := libHTTP.Cursor{Direction: libHTTP.CursorDirectionNext}
 
@@ -344,8 +346,8 @@ func (repo *Repository) ListByContextID(
 			}
 
 			findAll = findAll.
-				OrderBy("id " + effectiveOrder).
-				Limit(uint64(limit + 1))
+				OrderBy("id "+effectiveOrder).
+				Suffix("LIMIT ?", queryLimit)
 
 			query, args, err := findAll.ToSql()
 			if err != nil {

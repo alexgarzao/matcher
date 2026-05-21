@@ -68,16 +68,15 @@ func TestStreamingLoadConfigEnabledParsesRequiredSettings(t *testing.T) {
 	assert.Contains(t, cfg.PolicyOverrides, "reconciliation_context.created")
 }
 
-func TestStreamingLoadConfigEnabledDefaultsEmptyBrokerEnv(t *testing.T) {
+func TestStreamingLoadConfigEnabledRejectsEmptyBrokerEnv(t *testing.T) {
 	clearStreamingEnv(t)
 	t.Setenv("STREAMING_ENABLED", "true")
 	t.Setenv("STREAMING_BROKERS", " ")
 	t.Setenv("STREAMING_CLOUDEVENTS_SOURCE", "matcher")
 
-	cfg, _, err := streaming.LoadConfig()
+	_, _, err := streaming.LoadConfig()
 
-	require.NoError(t, err)
-	assert.Equal(t, []string{"localhost:9092"}, cfg.Brokers)
+	require.ErrorIs(t, err, streaming.ErrMissingBrokers)
 }
 
 func TestStreamingLoadConfigEnabledRejectsInvalidPolicies(t *testing.T) {

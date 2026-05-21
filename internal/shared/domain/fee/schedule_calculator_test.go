@@ -436,11 +436,25 @@ func TestRoundAmount(t *testing.T) {
 			expected: "2",
 		},
 		{
+			name:     "negative scale clamps to 0",
+			amount:   "1.567",
+			scale:    -1,
+			mode:     RoundingModeHalfUp,
+			expected: "2",
+		},
+		{
 			name:     "scale 4 preserves precision",
 			amount:   "1.23456",
 			scale:    4,
 			mode:     RoundingModeHalfUp,
 			expected: "1.2346",
+		},
+		{
+			name:     "scale above max clamps to max scale",
+			amount:   "1.12345678905",
+			scale:    maxRoundingScale + 1,
+			mode:     RoundingModeHalfUp,
+			expected: "1.1234567891",
 		},
 	}
 
